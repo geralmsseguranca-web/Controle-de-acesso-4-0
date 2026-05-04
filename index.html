@@ -73,7 +73,7 @@
     saveQueue(remaining);
     updateOfflineBadge(remaining.length);
     if (remaining.length === 0 && q.length > 0) {
-      showToast("☁️ " + q.length + " registro(s) offline sincronizados!", "success");
+      if (window.showToast) window.showToast("☁️ " + q.length + " registro(s) offline sincronizados!", "success");
     }
   }
 
@@ -90,11 +90,11 @@
         await push(logsRef, { ...record, serverTs: serverTimestamp() });
       } catch {
         enqueue(record);
-        showToast("⚠️ Erro ao salvar. Guardado offline.", "warning");
+        if (window.showToast) window.showToast("⚠️ Erro ao salvar. Guardado offline.", "warning");
       }
     } else {
       enqueue(record);
-      showToast("📴 Sem internet — guardado localmente.", "warning");
+      if (window.showToast) window.showToast("📴 Sem internet — guardado localmente.", "warning");
     }
   };
 
@@ -226,9 +226,9 @@
           <td>${esc(e.doc || '—')}</td>
           <td>${esc(e.plate || '—')}</td>
           <td>
-            <div class="table-action">
-              <div class="action-icon" title="Detalhes">👁</div>
-              <div class="action-icon" title="Editar">✏️</div>
+            <div class="table-action" style="opacity:1">
+              <div class="action-icon" title="Detalhes" onclick="showToast('Detalhes de '+esc(e.name),'info')">👁</div>
+              <div class="action-icon" title="Editar" onclick="showToast('Editando: '+esc(e.name),'info')">✏️</div>
             </div>
           </td>
         </tr>
@@ -555,8 +555,7 @@
   .badge-cyan   { background: rgba(0,212,255,0.10);  color: var(--accent); }
   .badge-purple { background: rgba(124,58,237,0.12); color: #a78bfa; }
   .badge-gray   { background: rgba(255,255,255,0.05);color: var(--text3); }
-  .table-action { display: flex; align-items: center; gap: 6px; opacity: 0; transition: opacity 0.2s; }
-  tbody tr:hover .table-action { opacity: 1; }
+  .table-action { display: flex; align-items: center; gap: 6px; opacity: 1; transition: opacity 0.2s; }
   .action-icon {
     width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border2);
     background: var(--surface3); display: flex; align-items: center; justify-content: center;
@@ -1047,11 +1046,11 @@
           <table>
             <thead><tr><th>Visitante</th><th>Unidade Visitada</th><th>Documento</th><th>Entrada</th><th>Saída</th><th>Status</th><th>Ações</th></tr></thead>
             <tbody id="visitantes-tbody">
-              <tr><td><div class="person"><div class="person-avatar" style="background:#00d4ff">CS</div><div><div class="person-name">Carlos Silva</div><div class="person-sub">Visitante</div></div></div></td><td>Bloco A — 201</td><td>123.456.789-00</td><td>08:15</td><td>—</td><td><span class="badge badge-green">✅ No local</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Saída registrada!','success')" title="Registrar Saída">↩️</div><div class="action-icon" title="Detalhes">👁</div></div></td></tr>
-              <tr><td><div class="person"><div class="person-avatar" style="background:#7c3aed">FA</div><div><div class="person-name">Fernanda Alves</div><div class="person-sub">Visitante</div></div></div></td><td>Bloco C — 504</td><td>987.654.321-00</td><td>09:00</td><td>—</td><td><span class="badge badge-green">✅ No local</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Saída registrada!','success')">↩️</div><div class="action-icon">👁</div></div></td></tr>
-              <tr><td><div class="person"><div class="person-avatar" style="background:#10b981">RL</div><div><div class="person-name">Roberto Lima</div><div class="person-sub">Visitante</div></div></div></td><td>Bloco B — 302</td><td>456.123.789-00</td><td>07:45</td><td>09:30</td><td><span class="badge badge-cyan">↩️ Saiu</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
-              <tr><td><div class="person"><div class="person-avatar" style="background:#f59e0b">JR</div><div><div class="person-name">João Rodrigues</div><div class="person-sub">Visitante</div></div></div></td><td>Bloco A — 101</td><td>321.654.987-00</td><td>—</td><td>—</td><td><span class="badge badge-yellow">⏳ Aguardando</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Entrada liberada!','success')">✅</div><div class="action-icon" onclick="showToast('Acesso negado','error')">⛔</div></div></td></tr>
-              <tr><td><div class="person"><div class="person-avatar" style="background:#ef4444">PS</div><div><div class="person-name">Paula Souza</div><div class="person-sub">Visitante</div></div></div></td><td>Salão de Festas</td><td>654.321.123-00</td><td>10:10</td><td>12:45</td><td><span class="badge badge-cyan">↩️ Saiu</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
+              <tr><td><div class="person"><div class="person-avatar" style="background:#00d4ff">CS</div><div><div class="person-name">Carlos Silva</div><div class="person-sub">Visitante</div></div></div></td><td>Bloco A — 201</td><td>123.456.789-00</td><td>08:15</td><td>—</td><td><span class="badge badge-green">✅ No local</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Saída registrada: Carlos Silva','success')" title="Registrar Saída">↩️</div><div class="action-icon" onclick="showToast('Carlos Silva — Bloco A 201 — No local','info')" title="Detalhes">👁</div></div></td></tr>
+              <tr><td><div class="person"><div class="person-avatar" style="background:#7c3aed">FA</div><div><div class="person-name">Fernanda Alves</div><div class="person-sub">Visitante</div></div></div></td><td>Bloco C — 504</td><td>987.654.321-00</td><td>09:00</td><td>—</td><td><span class="badge badge-green">✅ No local</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Saída registrada: Fernanda Alves','success')">↩️</div><div class="action-icon" onclick="showToast('Fernanda Alves — Bloco C 504 — No local','info')">👁</div></div></td></tr>
+              <tr><td><div class="person"><div class="person-avatar" style="background:#10b981">RL</div><div><div class="person-name">Roberto Lima</div><div class="person-sub">Visitante</div></div></div></td><td>Bloco B — 302</td><td>456.123.789-00</td><td>07:45</td><td>09:30</td><td><span class="badge badge-cyan">↩️ Saiu</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Roberto Lima — Saiu às 09:30','info')">👁</div></div></td></tr>
+              <tr><td><div class="person"><div class="person-avatar" style="background:#f59e0b">JR</div><div><div class="person-name">João Rodrigues</div><div class="person-sub">Visitante</div></div></div></td><td>Bloco A — 101</td><td>321.654.987-00</td><td>—</td><td>—</td><td><span class="badge badge-yellow">⏳ Aguardando</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('✅ Entrada liberada: João Rodrigues','success')">✅</div><div class="action-icon" onclick="showToast('⛔ Acesso negado: João Rodrigues','error')">⛔</div></div></td></tr>
+              <tr><td><div class="person"><div class="person-avatar" style="background:#ef4444">PS</div><div><div class="person-name">Paula Souza</div><div class="person-sub">Visitante</div></div></div></td><td>Salão de Festas</td><td>654.321.123-00</td><td>10:10</td><td>12:45</td><td><span class="badge badge-cyan">↩️ Saiu</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Paula Souza — Saiu às 12:45','info')">👁</div></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -1124,9 +1123,9 @@
             <tbody>
               <tr><td>Correios</td><td>Ana Maria Costa</td><td>Bloco A — 201</td><td>📦 Encomenda</td><td>08:30</td><td>—</td><td><span class="badge badge-yellow">🏠 Na portaria</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Entrega confirmada!','success')" title="Confirmar retirada">✅</div></div></td></tr>
               <tr><td>Mercado Livre</td><td>José Santos</td><td>Bloco B — 302</td><td>📦 Encomenda</td><td>09:15</td><td>—</td><td><span class="badge badge-yellow">🏠 Na portaria</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Entrega confirmada!','success')">✅</div></div></td></tr>
-              <tr><td>iFood</td><td>Maria Reis</td><td>Bloco C — 101</td><td>🍕 Alimentação</td><td>12:00</td><td>12:05</td><td><span class="badge badge-green">✅ Entregue</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
-              <tr><td>Amazon</td><td>Pedro Oliveira</td><td>Bloco A — 404</td><td>📦 Encomenda</td><td>07:50</td><td>08:10</td><td><span class="badge badge-green">✅ Entregue</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
-              <tr><td>Rappi</td><td>Ana Maria Costa</td><td>Bloco A — 201</td><td>🛍 Compras</td><td>10:30</td><td>10:35</td><td><span class="badge badge-green">✅ Entregue</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
+              <tr><td>iFood</td><td>Maria Reis</td><td>Bloco C — 101</td><td>🍕 Alimentação</td><td>12:00</td><td>12:05</td><td><span class="badge badge-green">✅ Entregue</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('iFood para Maria Reis — Entregue às 12:05','info')">👁</div></div></td></tr>
+              <tr><td>Amazon</td><td>Pedro Oliveira</td><td>Bloco A — 404</td><td>📦 Encomenda</td><td>07:50</td><td>08:10</td><td><span class="badge badge-green">✅ Entregue</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Amazon para Pedro Oliveira — Entregue às 08:10','info')">👁</div></div></td></tr>
+              <tr><td>Rappi</td><td>Ana Maria Costa</td><td>Bloco A — 201</td><td>🛍 Compras</td><td>10:30</td><td>10:35</td><td><span class="badge badge-green">✅ Entregue</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Rappi para Ana Maria — Entregue às 10:35','info')">👁</div></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -1186,10 +1185,10 @@
           <table>
             <thead><tr><th>Ocorrência</th><th>Local</th><th>Reportado por</th><th>Data/Hora</th><th>Prioridade</th><th>Status</th><th>Ações</th></tr></thead>
             <tbody>
-              <tr style="background:rgba(245,158,11,0.05)"><td><b>Pessoa suspeita na entrada</b><div style="font-size:11px;color:var(--text3);margin-top:2px">Indivíduo circulando sem identificação</div></td><td>Entrada Principal</td><td>Porteiro Carlos</td><td>Hoje 08:47</td><td><span class="badge badge-yellow">⚡ Alta</span></td><td><span class="badge badge-yellow">🔄 Em andamento</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Ocorrência encerrada!','success')" title="Resolver">✅</div><div class="action-icon">👁</div></div></td></tr>
-              <tr><td><b>Veículo estacionado irregularmente</b><div style="font-size:11px;color:var(--text3);margin-top:2px">Bloqueando vaga de PCD</div></td><td>Garagem B</td><td>Morador — Ap. 302</td><td>Hoje 07:20</td><td><span class="badge badge-cyan">📊 Média</span></td><td><span class="badge badge-yellow">🔄 Em andamento</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Ocorrência encerrada!','success')">✅</div><div class="action-icon">👁</div></div></td></tr>
-              <tr><td><b>Portão com defeito</b><div style="font-size:11px;color:var(--text3);margin-top:2px">Cancela 02 não fechando corretamente</div></td><td>Saída Principal</td><td>Sistema</td><td>Ontem 22:10</td><td><span class="badge badge-red">🚨 Crítica</span></td><td><span class="badge badge-green">✅ Resolvida</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
-              <tr><td><b>Barulho excessivo</b><div style="font-size:11px;color:var(--text3);margin-top:2px">Festa no Salão após horário permitido</div></td><td>Salão de Festas</td><td>Morador — Ap. 101</td><td>Ontem 23:45</td><td><span class="badge badge-cyan">📊 Média</span></td><td><span class="badge badge-green">✅ Resolvida</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
+              <tr style="background:rgba(245,158,11,0.05)"><td><b>Pessoa suspeita na entrada</b><div style="font-size:11px;color:var(--text3);margin-top:2px">Indivíduo circulando sem identificação</div></td><td>Entrada Principal</td><td>Porteiro Carlos</td><td>Hoje 08:47</td><td><span class="badge badge-yellow">⚡ Alta</span></td><td><span class="badge badge-yellow">🔄 Em andamento</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('✅ Ocorrência encerrada!','success')" title="Resolver">✅</div><div class="action-icon" onclick="showToast('Zona: Entrada Principal — Alta prioridade','warning')">👁</div></div></td></tr>
+              <tr><td><b>Veículo estacionado irregularmente</b><div style="font-size:11px;color:var(--text3);margin-top:2px">Bloqueando vaga de PCD</div></td><td>Garagem B</td><td>Morador — Ap. 302</td><td>Hoje 07:20</td><td><span class="badge badge-cyan">📊 Média</span></td><td><span class="badge badge-yellow">🔄 Em andamento</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('✅ Ocorrência encerrada!','success')">✅</div><div class="action-icon" onclick="showToast('Garagem B — Prioridade média','info')">👁</div></div></td></tr>
+              <tr><td><b>Portão com defeito</b><div style="font-size:11px;color:var(--text3);margin-top:2px">Cancela 02 não fechando corretamente</div></td><td>Saída Principal</td><td>Sistema</td><td>Ontem 22:10</td><td><span class="badge badge-red">🚨 Crítica</span></td><td><span class="badge badge-green">✅ Resolvida</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Portão defeito — Resolvida','info')">👁</div></div></td></tr>
+              <tr><td><b>Barulho excessivo</b><div style="font-size:11px;color:var(--text3);margin-top:2px">Festa no Salão após horário permitido</div></td><td>Salão de Festas</td><td>Morador — Ap. 101</td><td>Ontem 23:45</td><td><span class="badge badge-cyan">📊 Média</span></td><td><span class="badge badge-green">✅ Resolvida</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Salão de Festas — Resolvida','info')">👁</div></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -1247,7 +1246,7 @@
                   <td>DEF-9012</td><td>Bloco A — 101</td>
                   <td style="color:var(--text3);font-size:12px;">08:30</td>
                   <td><span class="badge badge-green">✅ Liberado</span></td>
-                  <td><div class="table-action" style="opacity:1"><div class="action-icon" title="Ver">👁</div></div></td>
+                  <td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Paulo Lima — Morador — Liberado','info')" title="Ver">👁</div></div></td>
                 </tr>
               </tbody>
             </table>
@@ -1360,10 +1359,10 @@
         <table>
           <thead><tr><th>Morador</th><th>Unidade</th><th>CPF</th><th>Telefone</th><th>Status</th><th>Ações</th></tr></thead>
           <tbody>
-            <tr><td><div class="person"><div class="person-avatar" style="background:#00d4ff">AM</div><div><div class="person-name">Ana Maria Costa</div><div class="person-sub">Proprietária</div></div></div></td><td>Bloco A — 201</td><td>123.456.789-00</td><td>(11) 99999-1111</td><td><span class="badge badge-green">✅ Ativo</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><div class="person"><div class="person-avatar" style="background:#7c3aed">JS</div><div><div class="person-name">José Santos</div><div class="person-sub">Inquilino</div></div></div></td><td>Bloco B — 302</td><td>987.654.321-00</td><td>(11) 99999-2222</td><td><span class="badge badge-green">✅ Ativo</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><div class="person"><div class="person-avatar" style="background:#10b981">MR</div><div><div class="person-name">Maria Reis</div><div class="person-sub">Proprietária</div></div></div></td><td>Bloco C — 101</td><td>456.123.789-00</td><td>(11) 99999-3333</td><td><span class="badge badge-green">✅ Ativo</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><div class="person"><div class="person-avatar" style="background:#f59e0b">PO</div><div><div class="person-name">Pedro Oliveira</div><div class="person-sub">Proprietário</div></div></div></td><td>Bloco A — 404</td><td>321.654.987-00</td><td>(11) 99999-4444</td><td><span class="badge badge-cyan">↩️ Ausente</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
+            <tr><td><div class="person"><div class="person-avatar" style="background:#00d4ff">AM</div><div><div class="person-name">Ana Maria Costa</div><div class="person-sub">Proprietária</div></div></div></td><td>Bloco A — 201</td><td>123.456.789-00</td><td>(11) 99999-1111</td><td><span class="badge badge-green">✅ Ativo</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Morador: Ana Maria Costa — Bloco A 201','info')">👁</div><div class="action-icon" onclick="showToast('Editando Ana Maria Costa...','info')">✏️</div></div></td></tr>
+            <tr><td><div class="person"><div class="person-avatar" style="background:#7c3aed">JS</div><div><div class="person-name">José Santos</div><div class="person-sub">Inquilino</div></div></div></td><td>Bloco B — 302</td><td>987.654.321-00</td><td>(11) 99999-2222</td><td><span class="badge badge-green">✅ Ativo</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Morador: José Santos — Bloco B 302','info')">👁</div><div class="action-icon" onclick="showToast('Editando José Santos...','info')">✏️</div></div></td></tr>
+            <tr><td><div class="person"><div class="person-avatar" style="background:#10b981">MR</div><div><div class="person-name">Maria Reis</div><div class="person-sub">Proprietária</div></div></div></td><td>Bloco C — 101</td><td>456.123.789-00</td><td>(11) 99999-3333</td><td><span class="badge badge-green">✅ Ativo</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Moradora: Maria Reis — Bloco C 101','info')">👁</div><div class="action-icon" onclick="showToast('Editando Maria Reis...','info')">✏️</div></div></td></tr>
+            <tr><td><div class="person"><div class="person-avatar" style="background:#f59e0b">PO</div><div><div class="person-name">Pedro Oliveira</div><div class="person-sub">Proprietário</div></div></div></td><td>Bloco A — 404</td><td>321.654.987-00</td><td>(11) 99999-4444</td><td><span class="badge badge-cyan">↩️ Ausente</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Morador: Pedro Oliveira — Bloco A 404','info')">👁</div><div class="action-icon" onclick="showToast('Editando Pedro Oliveira...','info')">✏️</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1387,10 +1386,10 @@
         <table>
           <thead><tr><th>Unidade</th><th>Bloco</th><th>Andar</th><th>Morador</th><th>Vagas</th><th>Status</th><th>Ações</th></tr></thead>
           <tbody>
-            <tr><td><b>201</b></td><td>Bloco A</td><td>2º</td><td>Ana Maria Costa</td><td>2</td><td><span class="badge badge-green">✅ Ocupada</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><b>302</b></td><td>Bloco B</td><td>3º</td><td>José Santos</td><td>1</td><td><span class="badge badge-green">✅ Ocupada</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><b>101</b></td><td>Bloco C</td><td>1º</td><td>Maria Reis</td><td>2</td><td><span class="badge badge-green">✅ Ocupada</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><b>504</b></td><td>Bloco C</td><td>5º</td><td>—</td><td>2</td><td><span class="badge badge-gray">Vazia</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
+            <tr><td><b>201</b></td><td>Bloco A</td><td>2º</td><td>Ana Maria Costa</td><td>2</td><td><span class="badge badge-green">✅ Ocupada</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Unidade 201 — Bloco A, 2 vagas','info')">👁</div><div class="action-icon" onclick="showToast('Editando Unidade 201...','info')">✏️</div></div></td></tr>
+            <tr><td><b>302</b></td><td>Bloco B</td><td>3º</td><td>José Santos</td><td>1</td><td><span class="badge badge-green">✅ Ocupada</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Unidade 302 — Bloco B, 1 vaga','info')">👁</div><div class="action-icon" onclick="showToast('Editando Unidade 302...','info')">✏️</div></div></td></tr>
+            <tr><td><b>101</b></td><td>Bloco C</td><td>1º</td><td>Maria Reis</td><td>2</td><td><span class="badge badge-green">✅ Ocupada</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Unidade 101 — Bloco C, 2 vagas','info')">👁</div><div class="action-icon" onclick="showToast('Editando Unidade 101...','info')">✏️</div></div></td></tr>
+            <tr><td><b>504</b></td><td>Bloco C</td><td>5º</td><td>—</td><td>2</td><td><span class="badge badge-gray">Vazia</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Unidade 504 — Bloco C, Vazia','info')">👁</div><div class="action-icon" onclick="showToast('Editando Unidade 504...','info')">✏️</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1411,10 +1410,10 @@
         <table>
           <thead><tr><th>Pessoa</th><th>Tipo</th><th>Identificador</th><th>Validade</th><th>Último Uso</th><th>Status</th><th>Ações</th></tr></thead>
           <tbody>
-            <tr><td><div class="person"><div class="person-avatar" style="background:#00d4ff">AM</div><div><div class="person-name">Ana Maria Costa</div><div class="person-sub">Bloco A — 201</div></div></div></td><td><span class="badge badge-purple">📱 QR Code</span></td><td style="font-family:monospace;font-size:11px">QR-A201-0042</td><td>Permanente</td><td>Hoje 08:30</td><td><span class="badge badge-green">✅ Ativa</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><div class="person"><div class="person-avatar" style="background:#7c3aed">JS</div><div><div class="person-name">José Santos</div><div class="person-sub">Bloco B — 302</div></div></div></td><td><span class="badge badge-cyan">🔑 Cartão</span></td><td style="font-family:monospace;font-size:11px">CARD-009834</td><td>31/12/2025</td><td>Ontem 19:14</td><td><span class="badge badge-green">✅ Ativa</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><div class="person"><div class="person-avatar" style="background:#10b981">MR</div><div><div class="person-name">Maria Reis</div><div class="person-sub">Bloco C — 101</div></div></div></td><td><span class="badge badge-green">👆 Biometria</span></td><td style="font-family:monospace;font-size:11px">BIO-MR-C101</td><td>Permanente</td><td>Hoje 07:55</td><td><span class="badge badge-green">✅ Ativa</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><div class="person"><div class="person-avatar" style="background:#ef4444">EX</div><div><div class="person-name">Credencial Expirada</div><div class="person-sub">Bloco D — 205</div></div></div></td><td><span class="badge badge-yellow">🔢 Senha</span></td><td style="font-family:monospace;font-size:11px">PIN-2345</td><td>01/01/2024</td><td>Há 3 meses</td><td><span class="badge badge-red">⛔ Expirada</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">🔄</div></div></td></tr>
+            <tr><td><div class="person"><div class="person-avatar" style="background:#00d4ff">AM</div><div><div class="person-name">Ana Maria Costa</div><div class="person-sub">Bloco A — 201</div></div></div></td><td><span class="badge badge-purple">📱 QR Code</span></td><td style="font-family:monospace;font-size:11px">QR-A201-0042</td><td>Permanente</td><td>Hoje 08:30</td><td><span class="badge badge-green">✅ Ativa</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Credencial QR-A201-0042 — Ativa','info')">👁</div><div class="action-icon" onclick="showToast('Editando credencial de Ana Maria...','info')">✏️</div></div></td></tr>
+            <tr><td><div class="person"><div class="person-avatar" style="background:#7c3aed">JS</div><div><div class="person-name">José Santos</div><div class="person-sub">Bloco B — 302</div></div></div></td><td><span class="badge badge-cyan">🔑 Cartão</span></td><td style="font-family:monospace;font-size:11px">CARD-009834</td><td>31/12/2025</td><td>Ontem 19:14</td><td><span class="badge badge-green">✅ Ativa</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Credencial CARD-009834 — Ativa','info')">👁</div><div class="action-icon" onclick="showToast('Editando credencial de José Santos...','info')">✏️</div></div></td></tr>
+            <tr><td><div class="person"><div class="person-avatar" style="background:#10b981">MR</div><div><div class="person-name">Maria Reis</div><div class="person-sub">Bloco C — 101</div></div></div></td><td><span class="badge badge-green">👆 Biometria</span></td><td style="font-family:monospace;font-size:11px">BIO-MR-C101</td><td>Permanente</td><td>Hoje 07:55</td><td><span class="badge badge-green">✅ Ativa</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Credencial BIO-MR-C101 — Ativa','info')">👁</div><div class="action-icon" onclick="showToast('Editando credencial de Maria Reis...','info')">✏️</div></div></td></tr>
+            <tr><td><div class="person"><div class="person-avatar" style="background:#ef4444">EX</div><div><div class="person-name">Credencial Expirada</div><div class="person-sub">Bloco D — 205</div></div></div></td><td><span class="badge badge-yellow">🔢 Senha</span></td><td style="font-family:monospace;font-size:11px">PIN-2345</td><td>01/01/2024</td><td>Há 3 meses</td><td><span class="badge badge-red">⛔ Expirada</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Credencial PIN-2345 — Expirada','warning')">👁</div><div class="action-icon" onclick="showToast('✅ Credencial renovada com sucesso!','success')">🔄</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1432,9 +1431,9 @@
         <table>
           <thead><tr><th>Prestador</th><th>Empresa</th><th>Serviço</th><th>Validade</th><th>Última Entrada</th><th>Status</th><th>Ações</th></tr></thead>
           <tbody>
-            <tr><td><div class="person"><div class="person-avatar" style="background:#f59e0b">RM</div><div><div class="person-name">Ricardo Martins</div><div class="person-sub">Encanador</div></div></div></td><td>Hidráulica Pro</td><td>Manutenção</td><td>Esta semana</td><td>Hoje 09:00</td><td><span class="badge badge-green">✅ Liberado</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><div class="person"><div class="person-avatar" style="background:#06b6d4">CS</div><div><div class="person-name">Carla Sousa</div><div class="person-sub">Limpeza</div></div></div></td><td>CleanMax</td><td>Limpeza Geral</td><td>Permanente</td><td>Hoje 07:30</td><td><span class="badge badge-green">✅ Liberado</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><div class="person"><div class="person-avatar" style="background:#8b5cf6">TN</div><div><div class="person-name">Thiago Nunes</div><div class="person-sub">Elétrica</div></div></div></td><td>Eletro Service</td><td>Instalação</td><td>Hoje</td><td>Ontem 15:20</td><td><span class="badge badge-yellow">⏳ Pendente</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon" onclick="showToast('Liberado!','success')">✅</div></div></td></tr>
+            <tr><td><div class="person"><div class="person-avatar" style="background:#f59e0b">RM</div><div><div class="person-name">Ricardo Martins</div><div class="person-sub">Encanador</div></div></div></td><td>Hidráulica Pro</td><td>Manutenção</td><td>Esta semana</td><td>Hoje 09:00</td><td><span class="badge badge-green">✅ Liberado</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Ricardo Martins — Hidráulica Pro — Liberado','info')">👁</div><div class="action-icon" onclick="showToast('Editando Ricardo Martins...','info')">✏️</div></div></td></tr>
+            <tr><td><div class="person"><div class="person-avatar" style="background:#06b6d4">CS</div><div><div class="person-name">Carla Sousa</div><div class="person-sub">Limpeza</div></div></div></td><td>CleanMax</td><td>Limpeza Geral</td><td>Permanente</td><td>Hoje 07:30</td><td><span class="badge badge-green">✅ Liberado</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Carla Sousa — CleanMax — Liberada','info')">👁</div><div class="action-icon" onclick="showToast('Editando Carla Sousa...','info')">✏️</div></div></td></tr>
+            <tr><td><div class="person"><div class="person-avatar" style="background:#8b5cf6">TN</div><div><div class="person-name">Thiago Nunes</div><div class="person-sub">Elétrica</div></div></div></td><td>Eletro Service</td><td>Instalação</td><td>Hoje</td><td>Ontem 15:20</td><td><span class="badge badge-yellow">⏳ Pendente</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Thiago Nunes — Eletro Service — Pendente','warning')">👁</div><div class="action-icon" onclick="showToast('✅ Thiago Nunes liberado!','success')">✅</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1455,10 +1454,10 @@
         <table>
           <thead><tr><th>Placa</th><th>Modelo</th><th>Cor</th><th>Proprietário</th><th>Unidade</th><th>Status</th><th>Ações</th></tr></thead>
           <tbody>
-            <tr><td><b style="font-family:monospace">ABC-1234</b></td><td>Honda Civic</td><td>Prata</td><td>Ana Maria Costa</td><td>Bloco A — 201</td><td><span class="badge badge-green">✅ Interno</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><b style="font-family:monospace">DEF-9012</b></td><td>Toyota Corolla</td><td>Preto</td><td>José Santos</td><td>Bloco B — 302</td><td><span class="badge badge-cyan">↩️ Externo</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><b style="font-family:monospace">GHI-3456</b></td><td>VW Golf</td><td>Branco</td><td>Maria Reis</td><td>Bloco C — 101</td><td><span class="badge badge-green">✅ Interno</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div><div class="action-icon">✏️</div></div></td></tr>
-            <tr><td><b style="font-family:monospace">XYZ-5678</b></td><td>Fiat Strada</td><td>Vermelho</td><td>—</td><td>Visitante</td><td><span class="badge badge-yellow">⏳ Temporário</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
+            <tr><td><b style="font-family:monospace">ABC-1234</b></td><td>Honda Civic</td><td>Prata</td><td>Ana Maria Costa</td><td>Bloco A — 201</td><td><span class="badge badge-green">✅ Interno</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('ABC-1234 — Honda Civic Prata — Interno','info')">👁</div><div class="action-icon" onclick="showToast('Editando veículo ABC-1234...','info')">✏️</div></div></td></tr>
+            <tr><td><b style="font-family:monospace">DEF-9012</b></td><td>Toyota Corolla</td><td>Preto</td><td>José Santos</td><td>Bloco B — 302</td><td><span class="badge badge-cyan">↩️ Externo</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('DEF-9012 — Toyota Corolla Preto — Externo','info')">👁</div><div class="action-icon" onclick="showToast('Editando veículo DEF-9012...','info')">✏️</div></div></td></tr>
+            <tr><td><b style="font-family:monospace">GHI-3456</b></td><td>VW Golf</td><td>Branco</td><td>Maria Reis</td><td>Bloco C — 101</td><td><span class="badge badge-green">✅ Interno</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('GHI-3456 — VW Golf Branco — Interno','info')">👁</div><div class="action-icon" onclick="showToast('Editando veículo GHI-3456...','info')">✏️</div></div></td></tr>
+            <tr><td><b style="font-family:monospace">XYZ-5678</b></td><td>Fiat Strada</td><td>Vermelho</td><td>—</td><td>Visitante</td><td><span class="badge badge-yellow">⏳ Temporário</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('XYZ-5678 — Fiat Strada — Temporário','warning')">👁</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1574,10 +1573,10 @@
         <table>
           <thead><tr><th>Zona</th><th>Tipo</th><th>Localização</th><th>Horário</th><th>Prioridade</th><th>Status</th><th>Ação</th></tr></thead>
           <tbody>
-            <tr style="background:rgba(245,158,11,0.05)"><td><b>Zona 03</b></td><td>🚶 Sensor de Movimento</td><td>Telhado Bloco B</td><td>08:47</td><td><span class="badge badge-yellow">⚡ Alta</span></td><td><span class="badge badge-yellow">🔔 Ativo</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Alarme tratado!','success')" title="Tratar">✅</div><div class="action-icon" title="Detalhes">👁</div></div></td></tr>
-            <tr><td><b>Zona 01</b></td><td>🚪 Sensor de Porta</td><td>Entrada Principal</td><td>07:30</td><td><span class="badge badge-cyan">📊 Normal</span></td><td><span class="badge badge-green">✅ Resolvido</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
-            <tr><td><b>Zona 07</b></td><td>🌡 Sensor de Temperatura</td><td>Sala de Servidores</td><td>06:15</td><td><span class="badge badge-cyan">📊 Normal</span></td><td><span class="badge badge-green">✅ Resolvido</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
-            <tr><td><b>Zona 11</b></td><td>💧 Sensor de Água</td><td>Garagem B — Subsolo</td><td>Ontem 22:10</td><td><span class="badge badge-red">🚨 Crítica</span></td><td><span class="badge badge-green">✅ Resolvido</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
+            <tr style="background:rgba(245,158,11,0.05)"><td><b>Zona 03</b></td><td>🚶 Sensor de Movimento</td><td>Telhado Bloco B</td><td>08:47</td><td><span class="badge badge-yellow">⚡ Alta</span></td><td><span class="badge badge-yellow">🔔 Ativo</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('✅ Alarme Zona 03 tratado!','success')" title="Tratar">✅</div><div class="action-icon" onclick="showToast('Zona 03 — Telhado Bloco B — Alta prioridade','warning')" title="Detalhes">👁</div></div></td></tr>
+            <tr><td><b>Zona 01</b></td><td>🚪 Sensor de Porta</td><td>Entrada Principal</td><td>07:30</td><td><span class="badge badge-cyan">📊 Normal</span></td><td><span class="badge badge-green">✅ Resolvido</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Zona 01 — Entrada Principal — Resolvido','info')">👁</div></div></td></tr>
+            <tr><td><b>Zona 07</b></td><td>🌡 Sensor de Temperatura</td><td>Sala de Servidores</td><td>06:15</td><td><span class="badge badge-cyan">📊 Normal</span></td><td><span class="badge badge-green">✅ Resolvido</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Zona 07 — Sala de Servidores — Resolvido','info')">👁</div></div></td></tr>
+            <tr><td><b>Zona 11</b></td><td>💧 Sensor de Água</td><td>Garagem B — Subsolo</td><td>Ontem 22:10</td><td><span class="badge badge-red">🚨 Crítica</span></td><td><span class="badge badge-green">✅ Resolvido</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Zona 11 — Garagem B Subsolo — Resolvido','info')">👁</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1726,14 +1725,24 @@
 <script>
   window.FC = window.FC || { isOnline: navigator.onLine };
 
+  // ── TOAST (definido primeiro para que o módulo Firebase possa chamá-lo) ──
+  function showToast(msg, type = 'info') {
+    const c = document.getElementById('toast-container');
+    if (!c) return;
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(() => { if (t.parentNode) t.remove(); }, 3500);
+  }
+  window.showToast = showToast; // expõe globalmente para o módulo Firebase
+
   // ── NAVIGATE ──
   function navigate(el, screenId) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
     const name = el.dataset.title || el.textContent.trim().replace(/\s+/g,' ').trim();
     document.querySelector('.page-title').textContent = name;
-
-    // Hide all screens, show the target
     document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
     const target = document.getElementById(screenId || 'screen-dashboard');
     if (target) target.style.display = '';
@@ -1741,10 +1750,15 @@
 
   // ── TABS ──
   function switchTab(el, panelId) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    // só reseta as tabs dentro do mesmo tab-bar pai
+    const bar = el.closest('.tab-bar');
+    if (bar) bar.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    else document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
     if (panelId) {
-      document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+      // só esconde os panels dentro do mesmo screen pai
+      const screen = el.closest('.screen') || document.body;
+      screen.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
       const panel = document.getElementById(panelId);
       if (panel) panel.style.display = '';
     }
@@ -1753,35 +1767,62 @@
   // ── FILTER TABLE ROWS ──
   function filterTableRows(tbodyId, q) {
     const rows = document.querySelectorAll('#' + tbodyId + ' tr');
-    q = q.toLowerCase();
+    q = (q || '').toLowerCase();
     rows.forEach(r => {
       r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
     });
   }
 
-  // ── CHIPS ──
+  // ── CHIPS (com filtro real na tabela mais próxima) ──
   function filterChip(el, filter) {
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    // desativa apenas chips do mesmo grupo (filter-row pai)
+    const row = el.closest('.filter-row');
+    if (row) row.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    else document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
+    // filtra a tabela mais próxima se houver
+    const card = el.closest('.card');
+    if (!card || !filter || filter === 'all') {
+      if (card) card.querySelectorAll('tbody tr').forEach(r => r.style.display = '');
+      return;
+    }
+    card.querySelectorAll('tbody tr').forEach(r => {
+      const txt = r.textContent.toLowerCase();
+      let show = true;
+      if (filter === 'in')         show = txt.includes('entrada') || txt.includes('✅');
+      else if (filter === 'deny')  show = txt.includes('negado') || txt.includes('⛔');
+      else if (filter === 'wait')  show = txt.includes('aguardando') || txt.includes('⏳');
+      else if (filter === 'done')  show = txt.includes('liberado') || txt.includes('✅');
+      else if (filter === 'denied')show = txt.includes('negado') || txt.includes('⛔');
+      r.style.display = show ? '' : 'none';
+    });
   }
 
   // ── GATES ──
   function openGate(name) {
     showToast('🚪 ' + name + ' aberta!', 'success');
     const entry = { name: 'Sistema', detail: 'Portão liberado: ' + name, type: 'in', accessType: 'Sistema', unit: name };
-    if (window.FC.addLog) window.FC.addLog(entry);
+    if (window.FC && window.FC.addLog) window.FC.addLog(entry);
   }
 
   function lockAll() {
     showToast('🔒 Todos os acessos bloqueados!', 'warning');
     const entry = { name: 'Sistema', detail: '⛔ Bloqueio geral ativado', type: 'deny', accessType: 'Sistema', unit: 'Geral' };
-    if (window.FC.addLog) window.FC.addLog(entry);
+    if (window.FC && window.FC.addLog) window.FC.addLog(entry);
   }
 
   // ── MODAL ──
-  function openModal() { document.getElementById('modal').classList.add('open'); }
-  function closeModal() { document.getElementById('modal').classList.remove('open'); }
-  function closeModalOutside(e) { if (e.target.id === 'modal') closeModal(); }
+  function openModal() {
+    const m = document.getElementById('modal');
+    if (m) m.classList.add('open');
+  }
+  function closeModal() {
+    const m = document.getElementById('modal');
+    if (m) m.classList.remove('open');
+  }
+  function closeModalOutside(e) {
+    if (e.target.id === 'modal') closeModal();
+  }
 
   function saveAccess() {
     const name  = document.getElementById('f-name').value.trim();
@@ -1800,29 +1841,29 @@
       detail: 'Liberado manualmente — ' + type + (unit ? ' • ' + unit : '')
     };
 
-    if (window.FC.addLog) {
-      window.FC.addLog(entry);
-    }
+    if (window.FC && window.FC.addLog) window.FC.addLog(entry);
 
     closeModal();
-    // clear
-    ['f-name','f-doc','f-plate','f-unit','f-notes'].forEach(id => document.getElementById(id).value = '');
+    ['f-name','f-doc','f-plate','f-unit','f-notes'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
     showToast('✅ Acesso liberado com sucesso!', 'success');
   }
 
   // ── QR SIMULATE ──
-  const qrNames = ['Lucas Mendes','Fernanda Alves','Roberto Lima','Carla Souza','Paulo Neto'];
+  const qrNames = ['Lucas Mendes','Fernanda Alves','Roberto Lima','Carla Souza','Paulo Neto','Juliana Reis'];
   function simulateQR() {
     const name = qrNames[Math.floor(Math.random() * qrNames.length)];
     showToast('📲 QR lido: ' + name, 'success');
     const entry = { name, detail: 'Acesso via QR Code — Pedestre', type: 'in', accessType: 'Morador', unit: 'Auto' };
-    if (window.FC.addLog) window.FC.addLog(entry);
+    if (window.FC && window.FC.addLog) window.FC.addLog(entry);
   }
 
-  // ── SEARCH ──
+  // ── SEARCH GLOBAL (busca na tabela principal do dashboard) ──
   function searchTable(q) {
     const rows = document.querySelectorAll('#access-tbody tr');
-    q = q.toLowerCase();
+    q = (q || '').toLowerCase();
     rows.forEach(r => {
       r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
     });
@@ -1830,53 +1871,52 @@
 
   // ── EXPORT CSV ──
   function exportCSV() {
-    const rows = document.querySelectorAll('#access-tbody tr');
-    let csv = 'Nome,Tipo,Unidade,Status,Horário,Documento,Placa\n';
+    // tenta exportar a tabela visível na tela atual
+    let tbody = document.querySelector('.screen:not([style*="display: none"]) tbody')
+             || document.getElementById('access-tbody');
+    if (!tbody) { showToast('⚠️ Nenhuma tabela visível para exportar.', 'warning'); return; }
+    const rows = tbody.querySelectorAll('tr');
+    const header = tbody.closest('table').querySelector('thead tr');
+    let csv = '';
+    if (header) {
+      csv = [...header.querySelectorAll('th')].map(th => '"' + th.textContent.trim() + '"').join(',') + '\n';
+    }
     rows.forEach(r => {
       const cells = r.querySelectorAll('td');
-      if (cells.length < 6) return;
-      const cols = [...cells].slice(0, 6).map(c => '"' + c.textContent.replace(/\n/g,' ').trim() + '"');
+      if (cells.length < 2) return;
+      const cols = [...cells].map(c => '"' + c.textContent.replace(/\n/g,' ').trim() + '"');
       csv += cols.join(',') + '\n';
     });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    if (!csv.trim()) { showToast('⚠️ Nenhum dado para exportar.', 'warning'); return; }
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'acessos_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.download = 'firstcontrol_' + new Date().toISOString().slice(0,10) + '.csv';
     a.click();
-    showToast('📄 CSV exportado!', 'success');
+    showToast('📄 CSV exportado com sucesso!', 'success');
   }
 
   // ── FORCE SYNC ──
   function forceSync() {
-    showToast('🔄 Sincronizando...', 'info');
-    // flushQueue is called automatically on reconnect, but we trigger via online event
+    showToast('🔄 Sincronizando com Firebase...', 'info');
     window.dispatchEvent(new Event('online'));
   }
 
-  // ── TOAST ──
-  function showToast(msg, type = 'info') {
-    const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
-    const c = document.getElementById('toast-container');
-    const t = document.createElement('div');
-    t.className = 'toast ' + type;
-    t.innerHTML = '<span>' + icons[type] + '</span> ' + msg;
-    c.appendChild(t);
-    setTimeout(() => t.remove(), 3500);
-  }
-
-  // ── SIMULATED LIVE (fallback enquanto Firebase não conecta) ──
+  // ── SIMULATED LIVE (fallback quando Firebase não está conectado) ──
   const demoNames   = ['Lucas Mendes','Fernanda Alves','Roberto Lima','Carla Souza','Paulo Neto','Juliana Reis'];
   const demoDetails = ['Entrada — Bloco A','Saída — Garagem B','Entrada — Pedestre','Entrada Veículo','Saída — Social'];
   const demoTypes   = ['in','out','in','in','out'];
 
-  // só simula se Firebase não estiver ativo
   setInterval(() => {
-    if (window.FC && window.FC.isOnline && document.getElementById('live-log').children.length > 1) return;
-    const n = demoNames[Math.floor(Math.random() * demoNames.length)];
-    const d = demoDetails[Math.floor(Math.random() * demoDetails.length)];
+    if (window.FC && window.FC.isOnline) return;
+    const n  = demoNames[Math.floor(Math.random() * demoNames.length)];
+    const d  = demoDetails[Math.floor(Math.random() * demoDetails.length)];
     const tp = demoTypes[Math.floor(Math.random() * demoTypes.length)];
-    // fallback local log
     const log = document.getElementById('live-log');
+    if (!log) return;
+    // remove placeholder de "sem movimentações"
+    const empty = log.querySelector('.empty');
+    if (empty) empty.remove();
     const now = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
     const item = document.createElement('div');
     item.className = 'log-item';
@@ -1884,6 +1924,27 @@
     log.insertBefore(item, log.firstChild);
     if (log.children.length > 6) log.removeChild(log.lastChild);
   }, 8000);
+
+  // ── TOGGLE DOS SWITCHES DE CONFIGURAÇÃO ──
+  document.addEventListener('DOMContentLoaded', () => {
+    // Permite que os toggles de configuração sejam clicáveis e mudem de estado visual
+    document.querySelectorAll('[onclick*="alterado"],[onclick*="habilitado"]').forEach(toggle => {
+      const isOn = toggle.style.background && toggle.style.background.includes('accent3');
+      toggle.dataset.on = isOn ? '1' : '0';
+      toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        this.dataset.on = this.dataset.on === '1' ? '0' : '1';
+        const on = this.dataset.on === '1';
+        this.style.background = on ? 'var(--accent3)' : 'var(--surface3)';
+        const circle = this.querySelector('div');
+        if (circle) {
+          circle.style.right  = on ? '3px'  : '';
+          circle.style.left   = on ? ''     : '3px';
+          circle.style.background = on ? '#fff' : 'var(--text3)';
+        }
+      });
+    });
+  });
 </script>
 </body>
 </html>
