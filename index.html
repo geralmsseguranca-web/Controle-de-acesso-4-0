@@ -136,7 +136,12 @@
   // ── Escutar logs em tempo real ───────────────────────────────
   onValue(logsRef, (snap) => {
     const data = snap.val();
-    if (!data) return;
+    if (!data) {
+      renderLiveLogs([]);
+      renderTable([]);
+      updateStats([]);
+      return;
+    }
     const entries = Object.entries(data)
       .map(([id, v]) => ({ id, ...v }))
       .sort((a, b) => b.timestamp - a.timestamp)
@@ -171,6 +176,10 @@
     const log = document.getElementById("live-log");
     if (!log) return;
     log.innerHTML = "";
+    if (!entries.length) {
+      log.innerHTML = `<div class="empty">📋 Sem movimentações ainda.</div>`;
+      return;
+    }
     entries.forEach(e => {
       const t = new Date(e.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       const item = document.createElement("div");
@@ -191,6 +200,10 @@
     const tbody = document.getElementById("access-tbody");
     if (!tbody) return;
     tbody.innerHTML = "";
+    if (!entries.length) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty">📋 Nenhum registro ainda. Use "+ Liberar Acesso" para começar.</div></td></tr>`;
+      return;
+    }
     entries.slice(0, 20).forEach(e => {
       const t = new Date(e.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       const badgeClass = e.type === "in" ? "badge-green" : e.type === "out" ? "badge-cyan" : "badge-red";
@@ -894,7 +907,7 @@
                 </tr>
               </thead>
               <tbody id="access-tbody">
-                <tr><td colspan="7"><div class="empty">⏳ Aguardando dados do Firebase…</div></td></tr>
+                <tr><td colspan="7"><div class="empty">📋 Nenhum registro ainda. Libere um acesso para começar.</div></td></tr>
               </tbody>
             </table>
           </div>
@@ -994,7 +1007,7 @@
             </div>
           </div>
           <div id="live-log">
-            <div class="empty">⏳ Aguardando movimentações…</div>
+            <div class="empty">📋 Sem movimentações ainda.</div>
           </div>
         </div>
 
