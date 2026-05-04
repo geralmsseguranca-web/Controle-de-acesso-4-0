@@ -824,13 +824,16 @@
 
     <!-- TABS -->
     <div class="tab-bar">
-      <div class="tab active" onclick="switchTab(this)"><div class="tab-dot"></div> Controle de Acesso</div>
-      <div class="tab" onclick="switchTab(this)"><div class="tab-dot"></div> Visitantes</div>
-      <div class="tab" onclick="switchTab(this)"><div class="tab-dot"></div> Veículos</div>
-      <div class="tab" onclick="switchTab(this)"><div class="tab-dot"></div> Entregas</div>
-      <div class="tab" onclick="switchTab(this)"><div class="tab-dot"></div> Prestadores</div>
-      <div class="tab" onclick="switchTab(this)"><div class="tab-dot"></div> Ocorrências</div>
+      <div class="tab active" onclick="switchTab(this,'tab-acesso')"><div class="tab-dot"></div> Controle de Acesso</div>
+      <div class="tab" onclick="switchTab(this,'tab-visitantes')"><div class="tab-dot"></div> Visitantes</div>
+      <div class="tab" onclick="switchTab(this,'tab-veiculos')"><div class="tab-dot"></div> Veículos</div>
+      <div class="tab" onclick="switchTab(this,'tab-entregas')"><div class="tab-dot"></div> Entregas</div>
+      <div class="tab" onclick="switchTab(this,'tab-prestadores')"><div class="tab-dot"></div> Prestadores</div>
+      <div class="tab" onclick="switchTab(this,'tab-ocorrencias')"><div class="tab-dot"></div> Ocorrências</div>
     </div>
+
+    <!-- ══ TAB: CONTROLE DE ACESSO ══ -->
+    <div id="tab-acesso" class="tab-panel">
 
     <!-- STATS -->
     <div class="stats-row">
@@ -1016,6 +1019,183 @@
 
       </div><!-- /right-col -->
     </div><!-- /main-grid -->
+    </div><!-- /tab-acesso -->
+
+    <!-- ══ TAB: VISITANTES ══ -->
+    <div id="tab-visitantes" class="tab-panel" style="display:none">
+      <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card cyan"><div class="stat-header"><span class="stat-label">Visitantes Hoje</span><div class="stat-icon">🪪</div></div><div class="stat-value" style="color:var(--accent)">14</div><div class="stat-sub">Registros do dia</div></div>
+        <div class="stat-card green"><div class="stat-header"><span class="stat-label">No Local Agora</span><div class="stat-icon">👥</div></div><div class="stat-value" style="color:var(--accent3)">6</div><div class="stat-sub">Visitantes ativos</div></div>
+        <div class="stat-card amber"><div class="stat-header"><span class="stat-label">Aguardando</span><div class="stat-icon">⏳</div></div><div class="stat-value" style="color:var(--accent4)">2</div><div class="stat-sub">Pré-agendados</div></div>
+        <div class="stat-card purple"><div class="stat-header"><span class="stat-label">Saíram</span><div class="stat-icon">↩️</div></div><div class="stat-value" style="color:#a78bfa">8</div><div class="stat-sub">Registraram saída</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><div class="card-title-dot" style="background:var(--accent)"></div>Registro de Visitantes</div>
+          <div class="card-actions">
+            <div class="search-wrap"><span class="search-icon">🔍</span><input class="search-input" type="text" placeholder="Buscar visitante..." oninput="filterTableRows('visitantes-tbody',this.value)"></div>
+            <button class="mini-btn" onclick="openModal()">＋ Novo Visitante</button>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="chip active" onclick="filterChip(this)">Todos</div>
+          <div class="chip" onclick="filterChip(this)">✅ No local</div>
+          <div class="chip" onclick="filterChip(this)">↩️ Saíram</div>
+          <div class="chip" onclick="filterChip(this)">⏳ Aguardando</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Visitante</th><th>Unidade Visitada</th><th>Documento</th><th>Entrada</th><th>Saída</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody id="visitantes-tbody">
+              <tr><td><div class="person"><div class="person-avatar" style="background:#00d4ff">CS</div><div><div class="person-name">Carlos Silva</div><div class="person-sub">Visitante</div></div></div></td><td>Bloco A — 201</td><td>123.456.789-00</td><td>08:15</td><td>—</td><td><span class="badge badge-green">✅ No local</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Saída registrada!','success')" title="Registrar Saída">↩️</div><div class="action-icon" title="Detalhes">👁</div></div></td></tr>
+              <tr><td><div class="person"><div class="person-avatar" style="background:#7c3aed">FA</div><div><div class="person-name">Fernanda Alves</div><div class="person-sub">Visitante</div></div></div></td><td>Bloco C — 504</td><td>987.654.321-00</td><td>09:00</td><td>—</td><td><span class="badge badge-green">✅ No local</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Saída registrada!','success')">↩️</div><div class="action-icon">👁</div></div></td></tr>
+              <tr><td><div class="person"><div class="person-avatar" style="background:#10b981">RL</div><div><div class="person-name">Roberto Lima</div><div class="person-sub">Visitante</div></div></div></td><td>Bloco B — 302</td><td>456.123.789-00</td><td>07:45</td><td>09:30</td><td><span class="badge badge-cyan">↩️ Saiu</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
+              <tr><td><div class="person"><div class="person-avatar" style="background:#f59e0b">JR</div><div><div class="person-name">João Rodrigues</div><div class="person-sub">Visitante</div></div></div></td><td>Bloco A — 101</td><td>321.654.987-00</td><td>—</td><td>—</td><td><span class="badge badge-yellow">⏳ Aguardando</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Entrada liberada!','success')">✅</div><div class="action-icon" onclick="showToast('Acesso negado','error')">⛔</div></div></td></tr>
+              <tr><td><div class="person"><div class="person-avatar" style="background:#ef4444">PS</div><div><div class="person-name">Paula Souza</div><div class="person-sub">Visitante</div></div></div></td><td>Salão de Festas</td><td>654.321.123-00</td><td>10:10</td><td>12:45</td><td><span class="badge badge-cyan">↩️ Saiu</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /tab-visitantes -->
+
+    <!-- ══ TAB: VEÍCULOS ══ -->
+    <div id="tab-veiculos" class="tab-panel" style="display:none">
+      <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card cyan"><div class="stat-header"><span class="stat-label">Internos Agora</span><div class="stat-icon">🚗</div></div><div class="stat-value" style="color:var(--accent)">23</div><div class="stat-sub">Veículos no estacionamento</div></div>
+        <div class="stat-card green"><div class="stat-header"><span class="stat-label">Entradas Hoje</span><div class="stat-icon">⬆️</div></div><div class="stat-value" style="color:var(--accent3)">41</div><div class="stat-sub">Acessos de entrada</div></div>
+        <div class="stat-card amber"><div class="stat-header"><span class="stat-label">Saídas Hoje</span><div class="stat-icon">⬇️</div></div><div class="stat-value" style="color:var(--accent4)">18</div><div class="stat-sub">Acessos de saída</div></div>
+        <div class="stat-card purple"><div class="stat-header"><span class="stat-label">Capacidade</span><div class="stat-icon">🏠</div></div><div class="stat-value" style="color:#a78bfa">46%</div><div class="stat-sub">50 vagas totais</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><div class="card-title-dot" style="background:var(--accent3)"></div>Movimentação de Veículos</div>
+          <div class="card-actions">
+            <div class="search-wrap"><span class="search-icon">🔍</span><input class="search-input" type="text" placeholder="Buscar placa..." oninput="filterTableRows('veiculos-tbody',this.value)"></div>
+            <button class="mini-btn" onclick="exportCSV()">⬇ Exportar CSV</button>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="chip active" onclick="filterChip(this)">Todos</div>
+          <div class="chip" onclick="filterChip(this)">🚗 Moradores</div>
+          <div class="chip" onclick="filterChip(this)">🪪 Visitantes</div>
+          <div class="chip" onclick="filterChip(this)">🔧 Prestadores</div>
+          <div class="chip" onclick="filterChip(this)">📦 Entregas</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Placa</th><th>Modelo</th><th>Proprietário</th><th>Tipo</th><th>Entrada</th><th>Saída</th><th>Status</th></tr></thead>
+            <tbody id="veiculos-tbody">
+              <tr><td><b style="font-family:monospace">ABC-1234</b></td><td>Honda Civic Prata</td><td>Ana Maria Costa</td><td><span class="badge badge-purple">🏠 Morador</span></td><td>07:30</td><td>—</td><td><span class="badge badge-green">✅ Interno</span></td></tr>
+              <tr><td><b style="font-family:monospace">DEF-9012</b></td><td>Toyota Corolla Preto</td><td>João Rodrigues</td><td><span class="badge badge-cyan">🪪 Visitante</span></td><td>08:45</td><td>—</td><td><span class="badge badge-green">✅ Interno</span></td></tr>
+              <tr><td><b style="font-family:monospace">XYZ-5678</b></td><td>Fiat Strada Vermelho</td><td>Entrega Correios</td><td><span class="badge badge-yellow">📦 Entrega</span></td><td>09:10</td><td>09:25</td><td><span class="badge badge-cyan">↩️ Saiu</span></td></tr>
+              <tr><td><b style="font-family:monospace">GHI-3456</b></td><td>VW Golf Branco</td><td>Maria Reis</td><td><span class="badge badge-purple">🏠 Morador</span></td><td>06:55</td><td>—</td><td><span class="badge badge-green">✅ Interno</span></td></tr>
+              <tr><td><b style="font-family:monospace">JKL-7890</b></td><td>Renault Kwid Cinza</td><td>CleanMax Limpeza</td><td><span class="badge badge-green">🔧 Prestador</span></td><td>07:00</td><td>17:00*</td><td><span class="badge badge-green">✅ Interno</span></td></tr>
+              <tr><td><b style="font-family:monospace">MNO-2345</b></td><td>Jeep Compass Branco</td><td>Pedro Oliveira</td><td><span class="badge badge-purple">🏠 Morador</span></td><td>08:00</td><td>10:30</td><td><span class="badge badge-cyan">↩️ Saiu</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /tab-veiculos -->
+
+    <!-- ══ TAB: ENTREGAS ══ -->
+    <div id="tab-entregas" class="tab-panel" style="display:none">
+      <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card cyan"><div class="stat-header"><span class="stat-label">Entregas Hoje</span><div class="stat-icon">📦</div></div><div class="stat-value" style="color:var(--accent)">7</div><div class="stat-sub">Recebidas no dia</div></div>
+        <div class="stat-card green"><div class="stat-header"><span class="stat-label">Entregues</span><div class="stat-icon">✅</div></div><div class="stat-value" style="color:var(--accent3)">5</div><div class="stat-sub">Retiradas pelo morador</div></div>
+        <div class="stat-card amber"><div class="stat-header"><span class="stat-label">Na Portaria</span><div class="stat-icon">🏠</div></div><div class="stat-value" style="color:var(--accent4)">2</div><div class="stat-sub">Aguardando retirada</div></div>
+        <div class="stat-card purple"><div class="stat-header"><span class="stat-label">Extraviadas</span><div class="stat-icon">⚠️</div></div><div class="stat-value" style="color:#a78bfa">0</div><div class="stat-sub">Este mês</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><div class="card-title-dot" style="background:var(--accent4)"></div>Registro de Entregas</div>
+          <div class="card-actions">
+            <button class="mini-btn" onclick="showToast('Nova entrega registrada!','success')">＋ Registrar Entrega</button>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="chip active" onclick="filterChip(this)">Todas</div>
+          <div class="chip" onclick="filterChip(this)">🏠 Na portaria</div>
+          <div class="chip" onclick="filterChip(this)">✅ Entregues</div>
+          <div class="chip" onclick="filterChip(this)">↩️ Devolvidas</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Remetente</th><th>Destinatário</th><th>Unidade</th><th>Tipo</th><th>Chegada</th><th>Retirada</th><th>Status</th><th>Ação</th></tr></thead>
+            <tbody>
+              <tr><td>Correios</td><td>Ana Maria Costa</td><td>Bloco A — 201</td><td>📦 Encomenda</td><td>08:30</td><td>—</td><td><span class="badge badge-yellow">🏠 Na portaria</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Entrega confirmada!','success')" title="Confirmar retirada">✅</div></div></td></tr>
+              <tr><td>Mercado Livre</td><td>José Santos</td><td>Bloco B — 302</td><td>📦 Encomenda</td><td>09:15</td><td>—</td><td><span class="badge badge-yellow">🏠 Na portaria</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Entrega confirmada!','success')">✅</div></div></td></tr>
+              <tr><td>iFood</td><td>Maria Reis</td><td>Bloco C — 101</td><td>🍕 Alimentação</td><td>12:00</td><td>12:05</td><td><span class="badge badge-green">✅ Entregue</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
+              <tr><td>Amazon</td><td>Pedro Oliveira</td><td>Bloco A — 404</td><td>📦 Encomenda</td><td>07:50</td><td>08:10</td><td><span class="badge badge-green">✅ Entregue</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
+              <tr><td>Rappi</td><td>Ana Maria Costa</td><td>Bloco A — 201</td><td>🛍 Compras</td><td>10:30</td><td>10:35</td><td><span class="badge badge-green">✅ Entregue</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /tab-entregas -->
+
+    <!-- ══ TAB: PRESTADORES ══ -->
+    <div id="tab-prestadores" class="tab-panel" style="display:none">
+      <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card green"><div class="stat-header"><span class="stat-label">No Local</span><div class="stat-icon">👷</div></div><div class="stat-value" style="color:var(--accent3)">3</div><div class="stat-sub">Prestadores ativos</div></div>
+        <div class="stat-card amber"><div class="stat-header"><span class="stat-label">Aguardando</span><div class="stat-icon">⏳</div></div><div class="stat-value" style="color:var(--accent4)">1</div><div class="stat-sub">Pendente de aprovação</div></div>
+        <div class="stat-card cyan"><div class="stat-header"><span class="stat-label">Este Mês</span><div class="stat-icon">📋</div></div><div class="stat-value" style="color:var(--accent)">28</div><div class="stat-sub">Acessos de prestadores</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><div class="card-title-dot" style="background:var(--accent4)"></div>Prestadores em Serviço</div>
+          <div class="card-actions">
+            <button class="mini-btn" onclick="showToast('Novo prestador autorizado!','success')">＋ Autorizar Prestador</button>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="chip active" onclick="filterChip(this)">Todos</div>
+          <div class="chip" onclick="filterChip(this)">✅ No local</div>
+          <div class="chip" onclick="filterChip(this)">⏳ Aguardando</div>
+          <div class="chip" onclick="filterChip(this)">↩️ Saíram</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Prestador</th><th>Empresa</th><th>Serviço</th><th>Unidade</th><th>Entrada</th><th>Previsão Saída</th><th>Status</th><th>Ação</th></tr></thead>
+            <tbody>
+              <tr><td><div class="person"><div class="person-avatar" style="background:#f59e0b">RM</div><div><div class="person-name">Ricardo Martins</div><div class="person-sub">Encanador</div></div></div></td><td>Hidráulica Pro</td><td>Reparo cano</td><td>Bloco B — 302</td><td>09:00</td><td>12:00</td><td><span class="badge badge-green">✅ No local</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Saída registrada!','success')" title="Registrar saída">↩️</div></div></td></tr>
+              <tr><td><div class="person"><div class="person-avatar" style="background:#06b6d4">CS</div><div><div class="person-name">Carla Sousa</div><div class="person-sub">Limpeza</div></div></div></td><td>CleanMax</td><td>Limpeza geral</td><td>Áreas comuns</td><td>07:00</td><td>17:00</td><td><span class="badge badge-green">✅ No local</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Saída registrada!','success')">↩️</div></div></td></tr>
+              <tr><td><div class="person"><div class="person-avatar" style="background:#8b5cf6">TN</div><div><div class="person-name">Thiago Nunes</div><div class="person-sub">Eletricista</div></div></div></td><td>Eletro Service</td><td>Instalação elétrica</td><td>Bloco A — 101</td><td>—</td><td>—</td><td><span class="badge badge-yellow">⏳ Aguardando</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Acesso liberado!','success')">✅</div><div class="action-icon" onclick="showToast('Acesso negado','error')">⛔</div></div></td></tr>
+              <tr><td><div class="person"><div class="person-avatar" style="background:#10b981">AL</div><div><div class="person-name">Antonio Lima</div><div class="person-sub">Jardinagem</div></div></div></td><td>Verde Jardins</td><td>Manutenção jardim</td><td>Área externa</td><td>08:00</td><td>16:00</td><td><span class="badge badge-green">✅ No local</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Saída registrada!','success')">↩️</div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /tab-prestadores -->
+
+    <!-- ══ TAB: OCORRÊNCIAS ══ -->
+    <div id="tab-ocorrencias" class="tab-panel" style="display:none">
+      <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card amber"><div class="stat-header"><span class="stat-label">Abertas</span><div class="stat-icon">🚨</div></div><div class="stat-value" style="color:var(--accent4)">1</div><div class="stat-sub">Ocorrências ativas</div></div>
+        <div class="stat-card green"><div class="stat-header"><span class="stat-label">Resolvidas</span><div class="stat-icon">✅</div></div><div class="stat-value" style="color:var(--accent3)">12</div><div class="stat-sub">Este mês</div></div>
+        <div class="stat-card cyan"><div class="stat-header"><span class="stat-label">Em Andamento</span><div class="stat-icon">🔄</div></div><div class="stat-value" style="color:var(--accent)">2</div><div class="stat-sub">Em investigação</div></div>
+        <div class="stat-card purple"><div class="stat-header"><span class="stat-label">Tempo Médio</span><div class="stat-icon">⏱</div></div><div class="stat-value" style="color:#a78bfa">4h</div><div class="stat-sub">Para resolução</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><div class="card-title-dot" style="background:var(--accent5)"></div>Registro de Ocorrências</div>
+          <div class="card-actions">
+            <button class="mini-btn" onclick="showToast('Nova ocorrência registrada!','warning')">＋ Nova Ocorrência</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Ocorrência</th><th>Local</th><th>Reportado por</th><th>Data/Hora</th><th>Prioridade</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody>
+              <tr style="background:rgba(245,158,11,0.05)"><td><b>Pessoa suspeita na entrada</b><div style="font-size:11px;color:var(--text3);margin-top:2px">Indivíduo circulando sem identificação</div></td><td>Entrada Principal</td><td>Porteiro Carlos</td><td>Hoje 08:47</td><td><span class="badge badge-yellow">⚡ Alta</span></td><td><span class="badge badge-yellow">🔄 Em andamento</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Ocorrência encerrada!','success')" title="Resolver">✅</div><div class="action-icon">👁</div></div></td></tr>
+              <tr><td><b>Veículo estacionado irregularmente</b><div style="font-size:11px;color:var(--text3);margin-top:2px">Bloqueando vaga de PCD</div></td><td>Garagem B</td><td>Morador — Ap. 302</td><td>Hoje 07:20</td><td><span class="badge badge-cyan">📊 Média</span></td><td><span class="badge badge-yellow">🔄 Em andamento</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon" onclick="showToast('Ocorrência encerrada!','success')">✅</div><div class="action-icon">👁</div></div></td></tr>
+              <tr><td><b>Portão com defeito</b><div style="font-size:11px;color:var(--text3);margin-top:2px">Cancela 02 não fechando corretamente</div></td><td>Saída Principal</td><td>Sistema</td><td>Ontem 22:10</td><td><span class="badge badge-red">🚨 Crítica</span></td><td><span class="badge badge-green">✅ Resolvida</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
+              <tr><td><b>Barulho excessivo</b><div style="font-size:11px;color:var(--text3);margin-top:2px">Festa no Salão após horário permitido</div></td><td>Salão de Festas</td><td>Morador — Ap. 101</td><td>Ontem 23:45</td><td><span class="badge badge-cyan">📊 Média</span></td><td><span class="badge badge-green">✅ Resolvida</span></td><td><div class="table-action" style="opacity:1"><div class="action-icon">👁</div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /tab-ocorrencias -->
+
   </div><!-- /screen-dashboard -->
 
   <!-- ══════════════════════════════════════════ PORTARIA ══ -->
@@ -1560,9 +1740,23 @@
   }
 
   // ── TABS ──
-  function switchTab(el) {
+  function switchTab(el, panelId) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
+    if (panelId) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+      const panel = document.getElementById(panelId);
+      if (panel) panel.style.display = '';
+    }
+  }
+
+  // ── FILTER TABLE ROWS ──
+  function filterTableRows(tbodyId, q) {
+    const rows = document.querySelectorAll('#' + tbodyId + ' tr');
+    q = q.toLowerCase();
+    rows.forEach(r => {
+      r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
   }
 
   // ── CHIPS ──
