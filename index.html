@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>First Control — Controle de Acesso v5 🔥</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+
+<!-- ══════════════════════════════════════════════
+     FIREBASE SDK  —  Substitua os valores abaixo com
+     suas credenciais do Firebase Console
+     ══════════════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp }            from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, push, onValue, set, serverTimestamp, onDisconnect, goOnline, goOffline }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  // ─── ⚙️  CREDENCIAIS DO PROJETO ──────────────────────────────
+  const firebaseConfig = {
+    apiKey:            "AIzaSyAVxPnYxkSFC9EzKhzFnhmPOlmYB3MgTGo",
+    authDomain:        "controle-de-acesso-4-0.firebaseapp.com",
+    databaseURL:       "https://controle-de-acesso-4-0-default-rtdb.firebaseio.com",
+    projectId:         "controle-de-acesso-4-0",
+    storageBucket:     "controle-de-acesso-4-0.firebasestorage.app",
+    messagingSenderId: "199567182600",
+    appId:             "1:199567182600:web:3ae4bb2ff56fcbd0bf3abd"
+  };
+  // ─────────────────────────────────────────────────────────────
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  // ── Referências ──────────────────────────────────────────────
+  const logsRef     = ref(db, "access_logs");
+  const statsRef    = ref(db, "stats");
+  const connRef     = ref(db, ".info/connected");
+  const presenceRef = ref(db, "presence/portaria-1");
+
+  // ── Fila offline (localStorage) ─────────────────────────────
+  const QUEUE_KEY = "fc_offline_queue";
+
+  function getQueue() {
+    try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]"); }
+    catch { return []; }
+  }
+  function saveQueue(q) {
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(q));
+  }
+  function enqueue(entry) {
+    const q = getQueue();
+    q.push(entry);
+    saveQueue(q);
+    updateOfflineBadge(q.length);
+  }
+  function updateOfflineBadge(count) {
+    const badge = document.getElementById("offline-badge");
+    if (!badge) return;
+    badge.textContent = count > 0 ? count + " pendente" + (count > 1 ? "s" : "") : "";
+    badge.style.display = count > 0 ? "inline-flex" : "none";
+  }
+
+  async function flushQueue() {
+    const q = getQueue();
+    if (q.length === 0) return;
+    const remaining = [];
+    for (const entry of q) {
+      try {
+        await push(logsRef, { ...entry, syncedAt: serverTimestamp(), offlineEntry: true });
+      } catch {
+        remaining.push(entry);
+      }
+    }
+    saveQueue(remaining);
+    updateOfflineBadge(remaining.length);
+    if (remaining.length === 0 && q.length > 0) {
+      showToast("☁️ " + q.length + " registro(s) offline sincronizados!", "success");
+    }
+  }
+
+  // ── Gravar log (online ou offline) ──────────────────────────
+  window.FC = window.FC || {};
+  window.FC.addLog = async function(entry) {
+    const record = {
+      ...entry,
+      timestamp: Date.now(),
+      date: new Date().toISOString()
+    };
+    if (window.FC.isOnline) {
+      try {
+        await push(logsRef, { ...record, serverTs: serverTimestamp() });
+      } catch {
+        enqueue(record);
+        showToast("⚠️ Erro ao salvar. Guardado offline.", "warning");
+      }
+    } else {
+      enqueue(record);
+      showToast("📴 Sem internet — guardado localmente.", "warning");
+    }
+  };
+
+  // ── Presença ─────────────────────────────────────────────────
+  function setupPresence() {
+    onDisconnect(presenceRef).set({ online: false, lastSeen: serverTimestamp() });
+    set(presenceRef, { online: true, since: serverTimestamp() });
+  }
+
+  // ── Status de conexão ────────────────────────────────────────
+  onValue(connRef, (snap) => {
+    const online = !!snap.val();
+    window.FC.isOnline = online;
+    updateConnectionUI(online);
+    if (online) {
+      setupPresence();
+      flushQueue();
+    }
+  });
+
+  function updateConnectionUI(online) {
+    const dot   = document.getElementById("conn-dot");
+    const label = document.getElementById("conn-label");
+    const strip = document.getElementById("offline-strip");
+    if (!dot || !label) return;
+    if (online) {
+      dot.style.background   = "var(--accent3)";
+      dot.style.boxShadow    = "0 0 8px var(--accent3)";
+      label.textContent      = "Sistema Online";
+      strip.style.display    = "none";
+    } else {
+      dot.style.background   = "var(--accent5)";
+      dot.style.boxShadow    = "0 0 8px var(--accent5)";
+      label.textContent      = "Offline — dados locais";
+      strip.style.display    = "flex";
+    }
+  }
+
+  // ── Escutar logs em tempo real ───────────────────────────────
+  onValue(logsRef, (snap) => {
+    const data = snap.val();
+    if (!data) return;
+    const entries = Object.entries(data)
+      .map(([id, v]) => ({ id, ...v }))
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 50);
+    renderLiveLogs(entries.slice(0, 6));
+    renderTable(entries);
+    updateStats(entries);
+  });
+
+  // ── Escutar stats ─────────────────────────────────────────────
+  function updateStats(entries) {
+    const today = new Date().toDateString();
+    const todayEntries = entries.filter(e => new Date(e.date).toDateString() === today);
+    const allowed = todayEntries.filter(e => e.type !== "deny").length;
+    const denied  = todayEntries.filter(e => e.type === "deny").length;
+    const inside  = todayEntries.filter(e => e.type === "in").length
+                  - todayEntries.filter(e => e.type === "out").length;
+    const visitors = todayEntries.filter(e => e.accessType === "Visitante").length;
+
+    setStatValue("stat-inside",   Math.max(0, inside));
+    setStatValue("stat-allowed",  allowed);
+    setStatValue("stat-denied",   denied);
+    setStatValue("stat-visitors", visitors);
+  }
+
+  function setStatValue(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  function renderLiveLogs(entries) {
+    const log = document.getElementById("live-log");
+    if (!log) return;
+    log.innerHTML = "";
+    entries.forEach(e => {
+      const t = new Date(e.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      const item = document.createElement("div");
+      item.className = "log-item";
+      item.innerHTML = `
+        <div class="log-dot ${e.type || 'in'}"></div>
+        <div class="log-info">
+          <div class="log-name">${esc(e.name)}</div>
+          <div class="log-detail">${esc(e.detail)}</div>
+        </div>
+        <div class="log-time">${t}${e.offlineEntry ? ' <span title="Sincronizado offline" style="color:var(--accent4)">📴</span>' : ''}</div>
+      `;
+      log.appendChild(item);
+    });
+  }
+
+  function renderTable(entries) {
+    const tbody = document.getElementById("access-tbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    entries.slice(0, 20).forEach(e => {
+      const t = new Date(e.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      const badgeClass = e.type === "in" ? "badge-green" : e.type === "out" ? "badge-cyan" : "badge-red";
+      const badgeLabel = e.type === "in" ? "✅ Entrada" : e.type === "out" ? "↩️ Saída" : "⛔ Negado";
+      const offIcon = e.offlineEntry ? '<span title="Registrado offline" style="color:var(--accent4);font-size:10px;">📴</span>' : '';
+      tbody.innerHTML += `
+        <tr>
+          <td>
+            <div class="person">
+              <div class="person-avatar" style="background:${avatarColor(e.name)}">${initials(e.name)}</div>
+              <div>
+                <div class="person-name">${esc(e.name)} ${offIcon}</div>
+                <div class="person-sub">${esc(e.accessType || '—')}</div>
+              </div>
+            </div>
+          </td>
+          <td>${esc(e.unit || '—')}</td>
+          <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
+          <td style="color:var(--text3);font-size:12px;">${t}</td>
+          <td>${esc(e.doc || '—')}</td>
+          <td>${esc(e.plate || '—')}</td>
+          <td>
+            <div class="table-action">
+              <div class="action-icon" title="Detalhes">👁</div>
+              <div class="action-icon" title="Editar">✏️</div>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+    if (!entries.length) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty">Nenhum registro encontrado</div></td></tr>`;
+    }
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────
+  function esc(s) { return String(s || "").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function initials(n) { return (n || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase(); }
+  const COLORS = ["#00d4ff","#7c3aed","#10b981","#f59e0b","#ef4444","#06b6d4","#8b5cf6"];
+  function avatarColor(n) { let h = 0; for (const c of (n||"")) h += c.charCodeAt(0); return COLORS[h % COLORS.length]; }
+
+  // ── Expor helpers globais para botões HTML ────────────────────
+  window.FC.db    = db;
+  window.FC.logsRef = logsRef;
+  window.FC.statsRef = statsRef;
+  window.FC.push  = push;
+  window.FC.serverTimestamp = serverTimestamp;
+  window.FC.getQueue = getQueue;
+  window.FC.updateOfflineBadge = updateOfflineBadge;
+
+  // badge inicial
+  document.addEventListener("DOMContentLoaded", () => {
+    window.FC.isOnline = navigator.onLine;
+    updateOfflineBadge(getQueue().length);
+    updateConnectionUI(navigator.onLine);
+  });
+
+  // fallback browser online/offline events
+  window.addEventListener("online",  () => { window.FC.isOnline = true;  updateConnectionUI(true);  flushQueue(); });
+  window.addEventListener("offline", () => { window.FC.isOnline = false; updateConnectionUI(false); });
+</script>
+
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --surface3: #1e2d44;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --accent4: #f59e0b;
+    --accent5: #ef4444;
+    --text: #f0f6ff;
+    --text2: #8fa0bc;
+    --text3: #4d6080;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 800px 600px at 20% -10%, rgba(0,212,255,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 600px 500px at 80% 110%, rgba(124,58,237,0.07) 0%, transparent 55%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── OFFLINE STRIP ── */
+  #offline-strip {
+    display: none;
+    position: fixed;
+    top: 0; left: 260px; right: 0;
+    background: linear-gradient(90deg, rgba(239,68,68,0.9), rgba(245,158,11,0.85));
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 20px;
+    z-index: 9999;
+    align-items: center;
+    gap: 10px;
+    backdrop-filter: blur(10px);
+  }
+  #offline-strip .strip-pulse {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #fff;
+    animation: pulse 1.2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  #offline-badge {
+    display: none;
+    background: var(--accent4);
+    color: #000;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-left: auto;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; z-index: 100;
+  }
+  .logo-area {
+    padding: 28px 24px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+    box-shadow: 0 0 20px rgba(0,212,255,0.3);
+  }
+  .logo-text { font-family: 'Syne', sans-serif; }
+  .logo-text span:first-child {
+    display: block; font-weight: 800; font-size: 16px; letter-spacing: -0.5px;
+    background: linear-gradient(90deg, var(--accent), #a78bfa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .logo-text span:last-child { font-size: 11px; color: var(--text3); font-weight: 400; }
+  .sidebar-section { padding: 20px 16px 8px; }
+  .sidebar-section-label {
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text3); font-weight: 600; padding: 0 8px; margin-bottom: 8px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+    border-radius: 10px; cursor: pointer; font-size: 13.5px; font-weight: 500;
+    color: var(--text2); transition: all 0.2s; position: relative; margin-bottom: 2px;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active {
+    background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,58,237,0.1));
+    color: var(--accent); font-weight: 600; border: 1px solid rgba(0,212,255,0.2);
+  }
+  .nav-item.active::before {
+    content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 60%; background: var(--accent); border-radius: 0 3px 3px 0;
+  }
+  .nav-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; background: rgba(255,255,255,0.04); flex-shrink: 0;
+  }
+  .nav-item.active .nav-icon { background: rgba(0,212,255,0.15); }
+  .nav-badge {
+    margin-left: auto; font-size: 10px; font-weight: 700;
+    background: var(--accent5); color: #fff; padding: 2px 7px;
+    border-radius: 20px; min-width: 20px; text-align: center;
+  }
+  .nav-badge.green { background: var(--accent3); }
+  .nav-badge.yellow { background: var(--accent4); color: #000; }
+  .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid var(--border); }
+  .user-card {
+    display: flex; align-items: center; gap: 12px; padding: 10px;
+    border-radius: 10px; background: var(--surface2); cursor: pointer; transition: background 0.2s;
+  }
+  .user-card:hover { background: var(--surface3); }
+  .user-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #06b6d4);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0;
+  }
+  .user-info span:first-child { display: block; font-size: 13px; font-weight: 600; }
+  .user-info span:last-child { font-size: 11px; color: var(--text3); }
+
+  /* ── MAIN ── */
+  .main { margin-left: 260px; min-height: 100vh; position: relative; z-index: 1; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: sticky; top: 0;
+    background: rgba(10,15,30,0.8); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px; height: 64px;
+    display: flex; align-items: center; justify-content: space-between; z-index: 50;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .page-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .top-btn {
+    display: flex; align-items: center; gap: 7px; padding: 8px 16px;
+    border-radius: 9px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text2); font-size: 13px;
+    font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  }
+  .top-btn:hover { background: var(--surface3); color: var(--text); }
+  .top-btn.primary {
+    background: linear-gradient(135deg, var(--accent), #0099cc);
+    color: #000; font-weight: 600; border: none;
+    box-shadow: 0 0 20px rgba(0,212,255,0.25);
+  }
+  .top-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 4px 24px rgba(0,212,255,0.4); }
+  .top-btn.danger { background: rgba(239,68,68,0.15); color: var(--accent5); border-color: rgba(239,68,68,0.25); }
+  .top-btn.danger:hover { background: rgba(239,68,68,0.25); }
+  .top-btn.success { background: rgba(16,185,129,0.15); color: var(--accent3); border-color: rgba(16,185,129,0.25); }
+  .top-btn.success:hover { background: rgba(16,185,129,0.25); }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 9px;
+    border: 1px solid var(--border2); background: var(--surface2); color: var(--text2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer; transition: all 0.2s; position: relative;
+  }
+  .icon-btn:hover { background: var(--surface3); color: var(--text); }
+  .notif-dot {
+    position: absolute; top: 7px; right: 7px;
+    width: 8px; height: 8px; background: var(--accent5);
+    border-radius: 50%; border: 2px solid var(--bg);
+  }
+
+  /* ── CONTENT ── */
+  .content { padding: 28px 32px; }
+
+  /* ── TABS ── */
+  .tab-bar {
+    display: flex; gap: 4px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 12px; padding: 5px;
+    margin-bottom: 28px; width: fit-content; max-width: 100%; overflow-x: auto;
+  }
+  .tab {
+    display: flex; align-items: center; gap: 7px; padding: 8px 18px;
+    border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500;
+    color: var(--text2); white-space: nowrap; transition: all 0.2s; user-select: none;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active {
+    background: linear-gradient(135deg, rgba(0,212,255,0.18), rgba(124,58,237,0.12));
+    color: var(--accent); font-weight: 600; border: 1px solid rgba(0,212,255,0.2);
+    box-shadow: 0 2px 12px rgba(0,212,255,0.12);
+  }
+  .tab-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.6; }
+
+  /* ── STATS ── */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s;
+    cursor: default; position: relative; overflow: hidden;
+  }
+  .stat-card::after {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 80px; height: 80px; border-radius: 50%;
+    opacity: 0.06; transform: translate(30%, -30%);
+  }
+  .stat-card.cyan::after   { background: var(--accent); }
+  .stat-card.purple::after { background: var(--accent2); }
+  .stat-card.green::after  { background: var(--accent3); }
+  .stat-card.amber::after  { background: var(--accent4); }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .stat-label { font-size: 12px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; }
+  .stat-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+  .stat-card.cyan .stat-icon   { background: rgba(0,212,255,0.12); }
+  .stat-card.purple .stat-icon { background: rgba(124,58,237,0.15); }
+  .stat-card.green .stat-icon  { background: rgba(16,185,129,0.12); }
+  .stat-card.amber .stat-icon  { background: rgba(245,158,11,0.12); }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 1; margin-bottom: 6px; }
+  .stat-card.cyan .stat-value   { color: var(--accent); }
+  .stat-card.purple .stat-value { color: #a78bfa; }
+  .stat-card.green .stat-value  { color: var(--accent3); }
+  .stat-card.amber .stat-value  { color: var(--accent4); }
+  .stat-sub { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 5px; }
+  .trend { font-weight: 600; }
+  .trend.up { color: var(--accent3); }
+  .trend.down { color: var(--accent5); }
+
+  /* ── GRID ── */
+  .main-grid { display: grid; grid-template-columns: 1fr 360px; gap: 20px; }
+
+  /* ── CARDS ── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .card-header {
+    padding: 18px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .card-title-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .card-actions { display: flex; gap: 8px; }
+  .mini-btn {
+    padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text2); font-size: 11.5px; font-weight: 500;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+  }
+  .mini-btn:hover { background: var(--surface3); color: var(--text); }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left; padding: 13px 16px; font-size: 11px; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--text3); font-weight: 600;
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; cursor: pointer; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td { padding: 14px 16px; vertical-align: middle; }
+  .person { display: flex; align-items: center; gap: 10px; }
+  .person-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+  .person-name { font-weight: 500; font-size: 13px; }
+  .person-sub { font-size: 11px; color: var(--text3); }
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+    border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .badge-green  { background: rgba(16,185,129,0.12); color: var(--accent3); }
+  .badge-red    { background: rgba(239,68,68,0.12);  color: var(--accent5); }
+  .badge-yellow { background: rgba(245,158,11,0.12); color: var(--accent4); }
+  .badge-cyan   { background: rgba(0,212,255,0.10);  color: var(--accent); }
+  .badge-purple { background: rgba(124,58,237,0.12); color: #a78bfa; }
+  .badge-gray   { background: rgba(255,255,255,0.05);color: var(--text3); }
+  .table-action { display: flex; align-items: center; gap: 6px; opacity: 0; transition: opacity 0.2s; }
+  tbody tr:hover .table-action { opacity: 1; }
+  .action-icon {
+    width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border2);
+    background: var(--surface3); display: flex; align-items: center; justify-content: center;
+    font-size: 12px; cursor: pointer; transition: all 0.15s;
+  }
+  .action-icon:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── SEARCH ── */
+  .search-wrap { position: relative; display: flex; align-items: center; }
+  .search-input {
+    background: var(--surface2); border: 1px solid var(--border2); border-radius: 9px;
+    padding: 8px 14px 8px 36px; color: var(--text); font-size: 13px; width: 240px;
+    font-family: 'DM Sans', sans-serif; transition: all 0.2s; outline: none;
+  }
+  .search-input::placeholder { color: var(--text3); }
+  .search-input:focus { border-color: rgba(0,212,255,0.4); box-shadow: 0 0 0 3px rgba(0,212,255,0.08); }
+  .search-icon { position: absolute; left: 12px; font-size: 13px; color: var(--text3); pointer-events: none; }
+
+  /* ── RIGHT PANEL ── */
+  .right-col { display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── LOG ── */
+  .log-item {
+    display: flex; align-items: flex-start; gap: 12px; padding: 13px 20px;
+    border-bottom: 1px solid var(--border); transition: background 0.15s;
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-item:hover { background: var(--surface2); }
+  .log-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .log-dot.in    { background: var(--accent3); box-shadow: 0 0 6px var(--accent3); }
+  .log-dot.out   { background: var(--accent5); box-shadow: 0 0 6px var(--accent5); }
+  .log-dot.deny  { background: var(--accent4); box-shadow: 0 0 6px var(--accent4); }
+  .log-info { flex: 1; min-width: 0; }
+  .log-name { font-size: 13px; font-weight: 500; }
+  .log-detail { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .log-time { font-size: 11px; color: var(--text3); white-space: nowrap; }
+
+  /* ── LIVE ── */
+  .live-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--accent3); }
+  .live-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent3); animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.3)} }
+
+  /* ── GATE PANEL ── */
+  .gate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px 20px 20px; }
+  .gate-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; padding: 14px 10px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--surface2); cursor: pointer; font-size: 12px; font-weight: 600;
+    color: var(--text2); transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  }
+  .gate-btn .gate-icon { font-size: 22px; }
+  .gate-btn:hover { background: var(--surface3); transform: translateY(-2px); }
+  .gate-btn.open  { background: rgba(16,185,129,0.1);  border-color: rgba(16,185,129,0.25); color: var(--accent3); }
+  .gate-btn.open:hover { background: rgba(16,185,129,0.18); box-shadow: 0 4px 16px rgba(16,185,129,0.2); }
+  .gate-btn.lock  { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.2);   color: var(--accent5); }
+  .gate-btn.lock:hover  { background: rgba(239,68,68,0.15); }
+  .gate-btn.alert { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.2);  color: var(--accent4); }
+
+  /* ── QR ── */
+  .qr-area { padding: 16px 20px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .qr-box {
+    width: 120px; height: 120px; border-radius: 12px; border: 2px solid rgba(0,212,255,0.25);
+    display: flex; align-items: center; justify-content: center; font-size: 60px;
+    background: var(--surface2); position: relative; overflow: hidden;
+  }
+  .qr-box::after {
+    content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.1), transparent);
+    animation: scan 2.5s ease-in-out infinite;
+  }
+  @keyframes scan { 0%{left:-100%} 100%{left:200%} }
+  .qr-text { font-size: 12px; color: var(--text3); text-align: center; }
+
+  /* ── CAPACITY ── */
+  .capacity-bar { height: 6px; background: var(--surface2); border-radius: 20px; overflow: hidden; margin-top: 6px; }
+  .capacity-fill { height: 100%; border-radius: 20px; transition: width 0.6s ease; }
+  .cap-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text2); }
+  .capacity-area { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* ── CHIPS ── */
+  .filter-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .chip {
+    padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border2);
+    background: transparent; color: var(--text3); font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  }
+  .chip:hover { color: var(--text); background: var(--surface2); }
+  .chip.active { background: rgba(0,212,255,0.12); color: var(--accent); border-color: rgba(0,212,255,0.3); }
+
+  select {
+    background: var(--surface2); border: 1px solid var(--border2); color: var(--text2);
+    border-radius: 8px; padding: 7px 12px; font-size: 12px; font-family: 'DM Sans', sans-serif; outline: none; cursor: pointer;
+  }
+  select:focus { border-color: rgba(0,212,255,0.4); }
+
+  /* ── TOASTS ── */
+  #toast-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
+  .toast {
+    display: flex; align-items: center; gap: 10px; background: var(--surface);
+    border: 1px solid var(--border2); border-radius: 12px; padding: 12px 18px;
+    min-width: 260px; box-shadow: var(--shadow); animation: slideIn 0.3s ease; font-size: 13px; font-weight: 500;
+  }
+  .toast.success { border-left: 3px solid var(--accent3); }
+  .toast.error   { border-left: 3px solid var(--accent5); }
+  .toast.info    { border-left: 3px solid var(--accent); }
+  .toast.warning { border-left: 3px solid var(--accent4); }
+  @keyframes slideIn { from{transform:translateX(40px);opacity:0} to{transform:translateX(0);opacity:1} }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+    z-index: 200; display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border2); border-radius: 18px;
+    width: 480px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    transform: translateY(20px); transition: transform 0.2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; }
+  .modal-body { padding: 24px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 12px; color: var(--text3); font-weight: 600; letter-spacing: 0.5px; margin-bottom: 6px; text-transform: uppercase; }
+  .form-input { width: 100%; background: var(--surface2); border: 1px solid var(--border2); border-radius: 9px; padding: 10px 14px; color: var(--text); font-size: 13.5px; font-family: 'DM Sans', sans-serif; outline: none; transition: all 0.2s; }
+  .form-input:focus { border-color: rgba(0,212,255,0.4); box-shadow: 0 0 0 3px rgba(0,212,255,0.07); }
+  .form-input::placeholder { color: var(--text3); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+  /* ── EMPTY ── */
+  .empty { text-align: center; padding: 40px; color: var(--text3); font-size: 13px; }
+
+  @media (max-width: 1200px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .main-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    #offline-strip { left: 0; }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ── OFFLINE STRIP ──────────────────────────────────────── -->
+<div id="offline-strip">
+  <div class="strip-pulse"></div>
+  <span>📴 Você está offline — registros sendo salvos localmente</span>
+  <span id="offline-badge"></span>
+</div>
+
+<!-- ── SIDEBAR ──────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="logo-area">
+    <div class="logo-icon">🔐</div>
+    <div class="logo-text">
+      <span>First Control</span>
+      <span>Controle de Acesso v5 🔥</span>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Principal</div>
+    <div class="nav-item active" onclick="navigate(this)">
+      <div class="nav-icon">🏠</div> Dashboard
+    </div>
+    <div class="nav-item" onclick="navigate(this)">
+      <div class="nav-icon">🚗</div> Portaria
+      <span class="nav-badge green">2</span>
+    </div>
+    <div class="nav-item" onclick="navigate(this)">
+      <div class="nav-icon">📋</div> Pré-Cadastro
+      <span class="nav-badge">5</span>
+    </div>
+    <div class="nav-item" onclick="navigate(this)">
+      <div class="nav-icon">📊</div> Relatórios
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Cadastros</div>
+    <div class="nav-item" onclick="navigate(this)">
+      <div class="nav-icon">👤</div> Moradores
+    </div>
+    <div class="nav-item" onclick="navigate(this)">
+      <div class="nav-icon">🏢</div> Unidades
+    </div>
+    <div class="nav-item" onclick="navigate(this)">
+      <div class="nav-icon">🔑</div> Credenciais
+    </div>
+    <div class="nav-item" onclick="navigate(this)">
+      <div class="nav-icon">👷</div> Prestadores
+    </div>
+    <div class="nav-item" onclick="navigate(this)">
+      <div class="nav-icon">🚙</div> Veículos
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Dispositivos</div>
+    <div class="nav-item" onclick="navigate(this)">
+      <div class="nav-icon">🚪</div> Cancelas / Portas
+    </div>
+    <div class="nav-item" onclick="navigate(this)">
+      <div class="nav-icon">📷</div> Câmeras
+    </div>
+    <div class="nav-item" onclick="navigate(this)">
+      <div class="nav-icon">🔔</div> Alarmes
+      <span class="nav-badge yellow">1</span>
+    </div>
+    <div class="nav-item" onclick="navigate(this)">
+      <div class="nav-icon">⚙️</div> Configurações
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar">AM</div>
+      <div class="user-info">
+        <span>Admin Master</span>
+        <span>Síndico</span>
+      </div>
+      <span style="margin-left:auto;color:var(--text3);font-size:13px;">⋯</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ──────────────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="page-title">Dashboard</div>
+      <div class="live-badge">
+        <div class="live-pulse" id="conn-dot"></div>
+        <span id="conn-label">Conectando...</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" placeholder="Buscar pessoa, placa, unidade..." oninput="searchTable(this.value)">
+      </div>
+      <button class="top-btn success" onclick="openGate('Entrada Principal')">⬆️ Abrir Entrada</button>
+      <button class="top-btn danger"  onclick="openGate('Saída Principal')">⬇️ Abrir Saída</button>
+      <button class="top-btn primary" onclick="openModal()">＋ Liberar Acesso</button>
+      <div class="icon-btn" onclick="showToast('3 notificações não lidas','info')">
+        🔔
+        <div class="notif-dot"></div>
+      </div>
+      <div class="icon-btn" title="Sincronizar agora" onclick="forceSync()">🔄</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- TABS -->
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab(this)"><div class="tab-dot"></div> Controle de Acesso</div>
+      <div class="tab" onclick="switchTab(this)"><div class="tab-dot"></div> Visitantes</div>
+      <div class="tab" onclick="switchTab(this)"><div class="tab-dot"></div> Veículos</div>
+      <div class="tab" onclick="switchTab(this)"><div class="tab-dot"></div> Entregas</div>
+      <div class="tab" onclick="switchTab(this)"><div class="tab-dot"></div> Prestadores</div>
+      <div class="tab" onclick="switchTab(this)"><div class="tab-dot"></div> Ocorrências</div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card cyan">
+        <div class="stat-header">
+          <span class="stat-label">Pessoas no Local</span>
+          <div class="stat-icon">👥</div>
+        </div>
+        <div class="stat-value" id="stat-inside">—</div>
+        <div class="stat-sub">Entradas − Saídas hoje</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-header">
+          <span class="stat-label">Acessos Hoje</span>
+          <div class="stat-icon">✅</div>
+        </div>
+        <div class="stat-value" id="stat-allowed">—</div>
+        <div class="stat-sub">Autorizados no dia</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-header">
+          <span class="stat-label">Acessos Negados</span>
+          <div class="stat-icon">⛔</div>
+        </div>
+        <div class="stat-value" id="stat-denied">—</div>
+        <div class="stat-sub">Bloqueados no dia</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-header">
+          <span class="stat-label">Visitantes Ativos</span>
+          <div class="stat-icon">🪪</div>
+        </div>
+        <div class="stat-value" id="stat-visitors">—</div>
+        <div class="stat-sub">Registros de visitante hoje</div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+
+      <!-- LEFT: TABLE -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-title-dot" style="background:var(--accent)"></div>
+              Registro de Acessos
+              <span id="sync-indicator" style="font-size:10px;color:var(--accent3);font-weight:400;margin-left:4px;">● ao vivo</span>
+            </div>
+            <div class="card-actions">
+              <select onchange="showToast('Filtro: '+this.value,'info')">
+                <option>Hoje</option><option>Últimas 24h</option><option>Esta semana</option>
+              </select>
+              <button class="mini-btn" onclick="exportCSV()">⬇ Exportar CSV</button>
+              <button class="mini-btn" onclick="forceSync()">↺ Sincronizar</button>
+            </div>
+          </div>
+          <div class="filter-row">
+            <span style="font-size:12px;color:var(--text3);margin-right:4px;">Filtrar:</span>
+            <div class="chip active" onclick="filterChip(this,'all')">Todos</div>
+            <div class="chip" onclick="filterChip(this,'in')">✅ Autorizado</div>
+            <div class="chip" onclick="filterChip(this,'deny')">⛔ Negado</div>
+            <div class="chip" onclick="filterChip(this,'pedestrian')">🚶 Pedestres</div>
+            <div class="chip" onclick="filterChip(this,'vehicle')">🚗 Veículos</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Pessoa</th>
+                  <th>Unidade</th>
+                  <th>Status</th>
+                  <th>Horário</th>
+                  <th>Documento</th>
+                  <th>Placa</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="access-tbody">
+                <tr><td colspan="7"><div class="empty">⏳ Aguardando dados do Firebase…</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COL -->
+      <div class="right-col">
+
+        <!-- GATES -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-title-dot" style="background:var(--accent3)"></div>
+              Controle de Portões
+            </div>
+          </div>
+          <div class="gate-grid">
+            <button class="gate-btn open" onclick="openGate('Entrada Principal')">
+              <div class="gate-icon">🚪</div> Entrada Principal
+            </button>
+            <button class="gate-btn open" onclick="openGate('Saída Principal')">
+              <div class="gate-icon">🚪</div> Saída Principal
+            </button>
+            <button class="gate-btn open" onclick="openGate('Garagem A')">
+              <div class="gate-icon">🏠</div> Garagem A
+            </button>
+            <button class="gate-btn open" onclick="openGate('Garagem B')">
+              <div class="gate-icon">🏠</div> Garagem B
+            </button>
+            <button class="gate-btn alert" onclick="openGate('Portão Serviço')">
+              <div class="gate-icon">🔧</div> Portão Serviço
+            </button>
+            <button class="gate-btn lock" onclick="lockAll()">
+              <div class="gate-icon">🔒</div> Bloquear Tudo
+            </button>
+          </div>
+        </div>
+
+        <!-- QR -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-title-dot" style="background:var(--accent2)"></div>
+              Leitura QR Code
+            </div>
+            <div class="live-badge">
+              <div class="live-pulse"></div>
+              Aguardando
+            </div>
+          </div>
+          <div class="qr-area">
+            <div class="qr-box">📷</div>
+            <div class="qr-text">Posicione o QR Code na câmera<br>para liberar acesso automaticamente</div>
+            <button class="top-btn" onclick="simulateQR()">⚡ Simular Leitura</button>
+          </div>
+        </div>
+
+        <!-- CAPACITY -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-title-dot" style="background:var(--accent4)"></div>
+              Capacidade em Tempo Real
+            </div>
+          </div>
+          <div class="capacity-area">
+            <div>
+              <div class="cap-row"><span>Área de Lazer</span><span style="font-weight:600;color:var(--accent3)">28 / 50</span></div>
+              <div class="capacity-bar"><div class="capacity-fill" style="width:56%;background:linear-gradient(90deg,var(--accent3),#06b6d4)"></div></div>
+            </div>
+            <div>
+              <div class="cap-row"><span>Salão de Festas</span><span style="font-weight:600;color:var(--accent4)">38 / 40</span></div>
+              <div class="capacity-bar"><div class="capacity-fill" style="width:95%;background:linear-gradient(90deg,var(--accent4),var(--accent5))"></div></div>
+            </div>
+            <div>
+              <div class="cap-row"><span>Academia</span><span style="font-weight:600;color:var(--accent)">8 / 20</span></div>
+              <div class="capacity-bar"><div class="capacity-fill" style="width:40%;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div></div>
+            </div>
+            <div>
+              <div class="cap-row"><span>Piscina</span><span style="font-weight:600;color:var(--accent2)">14 / 30</span></div>
+              <div class="capacity-bar"><div class="capacity-fill" style="width:47%;background:linear-gradient(90deg,var(--accent2),#ec4899)"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIVE LOG -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <div class="card-title-dot" style="background:var(--accent5)"></div>
+              Últimas Movimentações
+            </div>
+            <div class="live-badge">
+              <div class="live-pulse"></div>
+              Ao vivo
+            </div>
+          </div>
+          <div id="live-log">
+            <div class="empty">⏳ Aguardando movimentações…</div>
+          </div>
+        </div>
+
+      </div><!-- /right-col -->
+    </div><!-- /main-grid -->
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ── MODAL ─────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      🔓 Liberar Acesso
+      <div class="icon-btn" onclick="closeModal()" style="border:none;background:var(--surface2)">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome Completo</label>
+          <input class="form-input" id="f-name" type="text" placeholder="Ex: Maria Silva">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de Acesso</label>
+          <select class="form-input" id="f-type" style="padding:10px 14px">
+            <option>Visitante</option>
+            <option>Prestador</option>
+            <option>Entregador</option>
+            <option>Convidado</option>
+            <option>Morador</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Documento (CPF/RG)</label>
+          <input class="form-input" id="f-doc" type="text" placeholder="000.000.000-00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Placa do Veículo</label>
+          <input class="form-input" id="f-plate" type="text" placeholder="ABC-1234">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Unidade Visitada</label>
+          <input class="form-input" id="f-unit" type="text" placeholder="Bloco A — 201">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Validade do Acesso</label>
+          <select class="form-input" id="f-validity" style="padding:10px 14px">
+            <option>Apenas hoje</option>
+            <option>1 hora</option>
+            <option>4 horas</option>
+            <option>Esta semana</option>
+            <option>Permanente</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Observações</label>
+        <input class="form-input" id="f-notes" type="text" placeholder="Motivo da visita, informações adicionais...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="top-btn" onclick="closeModal()">Cancelar</button>
+      <button class="top-btn primary" onclick="saveAccess()">✓ Liberar Acesso</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- ── SCRIPTS ────────────────────────────────────────────────── -->
+<script>
+  window.FC = window.FC || { isOnline: navigator.onLine };
+
+  // ── NAVIGATE ──
+  function navigate(el) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    const name = el.textContent.trim().split('\n')[0].trim();
+    document.querySelector('.page-title').textContent = name;
+    showToast('Navegando para ' + name, 'info');
+  }
+
+  // ── TABS ──
+  function switchTab(el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    showToast('Aba: ' + el.textContent.trim(), 'info');
+  }
+
+  // ── CHIPS ──
+  function filterChip(el, filter) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    showToast('Filtro: ' + el.textContent.trim(), 'info');
+  }
+
+  // ── GATES ──
+  function openGate(name) {
+    showToast('🚪 ' + name + ' aberta!', 'success');
+    const entry = { name: 'Sistema', detail: 'Portão liberado: ' + name, type: 'in', accessType: 'Sistema', unit: name };
+    if (window.FC.addLog) window.FC.addLog(entry);
+  }
+
+  function lockAll() {
+    showToast('🔒 Todos os acessos bloqueados!', 'warning');
+    const entry = { name: 'Sistema', detail: '⛔ Bloqueio geral ativado', type: 'deny', accessType: 'Sistema', unit: 'Geral' };
+    if (window.FC.addLog) window.FC.addLog(entry);
+  }
+
+  // ── MODAL ──
+  function openModal() { document.getElementById('modal').classList.add('open'); }
+  function closeModal() { document.getElementById('modal').classList.remove('open'); }
+  function closeModalOutside(e) { if (e.target.id === 'modal') closeModal(); }
+
+  function saveAccess() {
+    const name  = document.getElementById('f-name').value.trim();
+    const type  = document.getElementById('f-type').value;
+    const doc   = document.getElementById('f-doc').value.trim();
+    const plate = document.getElementById('f-plate').value.trim();
+    const unit  = document.getElementById('f-unit').value.trim();
+    const notes = document.getElementById('f-notes').value.trim();
+    const valid = document.getElementById('f-validity').value;
+
+    if (!name) { showToast('⚠️ Informe o nome da pessoa.', 'warning'); return; }
+
+    const entry = {
+      name, accessType: type, doc, plate, unit, notes, validity: valid,
+      type: 'in',
+      detail: 'Liberado manualmente — ' + type + (unit ? ' • ' + unit : '')
+    };
+
+    if (window.FC.addLog) {
+      window.FC.addLog(entry);
+    }
+
+    closeModal();
+    // clear
+    ['f-name','f-doc','f-plate','f-unit','f-notes'].forEach(id => document.getElementById(id).value = '');
+    showToast('✅ Acesso liberado com sucesso!', 'success');
+  }
+
+  // ── QR SIMULATE ──
+  const qrNames = ['Lucas Mendes','Fernanda Alves','Roberto Lima','Carla Souza','Paulo Neto'];
+  function simulateQR() {
+    const name = qrNames[Math.floor(Math.random() * qrNames.length)];
+    showToast('📲 QR lido: ' + name, 'success');
+    const entry = { name, detail: 'Acesso via QR Code — Pedestre', type: 'in', accessType: 'Morador', unit: 'Auto' };
+    if (window.FC.addLog) window.FC.addLog(entry);
+  }
+
+  // ── SEARCH ──
+  function searchTable(q) {
+    const rows = document.querySelectorAll('#access-tbody tr');
+    q = q.toLowerCase();
+    rows.forEach(r => {
+      r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  }
+
+  // ── EXPORT CSV ──
+  function exportCSV() {
+    const rows = document.querySelectorAll('#access-tbody tr');
+    let csv = 'Nome,Tipo,Unidade,Status,Horário,Documento,Placa\n';
+    rows.forEach(r => {
+      const cells = r.querySelectorAll('td');
+      if (cells.length < 6) return;
+      const cols = [...cells].slice(0, 6).map(c => '"' + c.textContent.replace(/\n/g,' ').trim() + '"');
+      csv += cols.join(',') + '\n';
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'acessos_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    showToast('📄 CSV exportado!', 'success');
+  }
+
+  // ── FORCE SYNC ──
+  function forceSync() {
+    showToast('🔄 Sincronizando...', 'info');
+    // flushQueue is called automatically on reconnect, but we trigger via online event
+    window.dispatchEvent(new Event('online'));
+  }
+
+  // ── TOAST ──
+  function showToast(msg, type = 'info') {
+    const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.innerHTML = '<span>' + icons[type] + '</span> ' + msg;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+
+  // ── SIMULATED LIVE (fallback enquanto Firebase não conecta) ──
+  const demoNames   = ['Lucas Mendes','Fernanda Alves','Roberto Lima','Carla Souza','Paulo Neto','Juliana Reis'];
+  const demoDetails = ['Entrada — Bloco A','Saída — Garagem B','Entrada — Pedestre','Entrada Veículo','Saída — Social'];
+  const demoTypes   = ['in','out','in','in','out'];
+
+  // só simula se Firebase não estiver ativo
+  setInterval(() => {
+    if (window.FC && window.FC.isOnline && document.getElementById('live-log').children.length > 1) return;
+    const n = demoNames[Math.floor(Math.random() * demoNames.length)];
+    const d = demoDetails[Math.floor(Math.random() * demoDetails.length)];
+    const tp = demoTypes[Math.floor(Math.random() * demoTypes.length)];
+    // fallback local log
+    const log = document.getElementById('live-log');
+    const now = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+    const item = document.createElement('div');
+    item.className = 'log-item';
+    item.innerHTML = `<div class="log-dot ${tp}"></div><div class="log-info"><div class="log-name">${n}</div><div class="log-detail">${d}</div></div><div class="log-time">${now}</div>`;
+    log.insertBefore(item, log.firstChild);
+    if (log.children.length > 6) log.removeChild(log.lastChild);
+  }, 8000);
+</script>
+</body>
+</html>
