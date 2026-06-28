@@ -153,10 +153,14 @@ body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; }
 @keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:none} }
 
 /* ── Responsive ── */
+.btn-menu-mobile{ display:none; border:none; background:none; font-size:1.4rem; color:#0d3878; padding:.2rem .6rem; margin-right:.5rem; cursor:pointer; }
+.sidebar-overlay{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:1040; }
 @media(max-width:768px){
-  .sidebar{ transform:translateX(-100%); transition:.3s; }
+  .sidebar{ transform:translateX(-100%); transition:.3s; z-index:1050; }
   .sidebar.open{ transform:none; }
   .main-content{ margin-left:0; }
+  .btn-menu-mobile{ display:inline-block; }
+  .sidebar-overlay.show{ display:block; }
 }
 
 /* ── Footer ── */
@@ -348,6 +352,9 @@ footer { text-align:center; color:#aaa; font-size:.75rem; padding:1rem; border-t
   <!-- ── MAIN ── -->
   <div class="main-content">
     <div class="topbar">
+      <button class="btn-menu-mobile" onclick="toggleSidebar()" aria-label="Abrir menu">
+        <i class="bi bi-list"></i>
+      </button>
       <h1 class="page-title" id="page-title">Página inicial</h1>
       <div class="user-info">
         <span class="badge" id="topbar-badge" style="background:#1e3a5f">—</span>
@@ -619,6 +626,7 @@ footer { text-align:center; color:#aaa; font-size:.75rem; padding:1rem; border-t
     </div><!-- /content-area -->
     <footer>Controle de Visitantes &copy; 2025 — PJ Tecnologia e Sistemas</footer>
   </div><!-- /main-content -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar(false)"></div>
 </div><!-- /app -->
 
 <!-- ══════════════════════════════════
@@ -777,6 +785,15 @@ function mascaraCPF(el){
 }
 window.mascaraCPF=mascaraCPF;
 
+// ── Sidebar mobile ──
+window.toggleSidebar = function(force){
+  const sb = $('sidebar');
+  const ov = $('sidebar-overlay');
+  const abrir = (force !== undefined) ? force : !sb.classList.contains('open');
+  sb.classList.toggle('open', abrir);
+  ov.classList.toggle('show', abrir);
+};
+
 const TIPO_LABEL = { visita:'Visita', entrega:'Entrega', prestador:'Prestador de Serviço', nao_identificado:'Não identificado' };
 const STATUS_LABEL = { aguardando:'Aguardando autorização', em_visita:'Em visita', finalizada:'Visita finalizada', negado:'Acesso negado' };
 const PERFIL_LABEL = { porteiro:'Porteiro', sindico:'Síndico', administrador:'Administrador' };
@@ -928,6 +945,7 @@ window.navTo = function(view){
   document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
   $(`view-${view}`)?.classList.add('active');
   $(`nav-${view}`)?.classList.add('active');
+  if(window.innerWidth <= 768) toggleSidebar(false);
 
   const titulos = {
     dashboard:'Página inicial','visitante-novo':'Registrar Visitante',
