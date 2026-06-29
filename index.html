@@ -565,8 +565,8 @@ footer { text-align:center; color:#aaa; font-size:.75rem; padding:1rem; border-t
           <div class="card-body p-0">
             <div class="table-responsive">
               <table class="table table-hover mb-0">
-                <thead><tr><th>Nome</th><th>CPF</th><th>E-mail</th><th>Telefone</th><th>Status</th><th>Ações</th></tr></thead>
-                <tbody id="tb-proprietarios"><tr><td colspan="6" class="text-center text-muted py-4">Carregando...</td></tr></tbody>
+                <thead><tr><th>Nome</th><th>CPF</th><th>E-mail</th><th>Telefone</th><th>Unidade(s)</th><th>Status</th><th>Ações</th></tr></thead>
+                <tbody id="tb-proprietarios"><tr><td colspan="7" class="text-center text-muted py-4">Carregando...</td></tr></tbody>
               </table>
             </div>
           </div>
@@ -703,6 +703,13 @@ footer { text-align:center; color:#aaa; font-size:.75rem; padding:1rem; border-t
           <div class="col-md-6"><label class="form-label">CPF *</label><input type="text" id="mp-cpf" class="form-control" maxlength="14" oninput="mascaraCPF(this)"></div>
           <div class="col-md-6"><label class="form-label">Telefone</label><input type="text" id="mp-tel" class="form-control" placeholder="(11) 99999-9999"></div>
           <div class="col-12"><label class="form-label">E-mail</label><input type="email" id="mp-email" class="form-control"></div>
+          <div class="col-12">
+            <label class="form-label">Unidades vinculadas</label>
+            <div id="mp-unidades-lista" class="border rounded p-2" style="max-height:170px; overflow-y:auto; font-size:.85rem;">
+              <div class="text-muted small py-1">Carregando unidades...</div>
+            </div>
+            <div class="form-text">Marque as unidades pertencentes a este proprietário.</div>
+          </div>
           <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="mp-ativo" checked><label class="form-check-label">Ativo</label></div></div>
         </div>
       </div>
@@ -1227,41 +1234,75 @@ window.salvarUnidade = async function(){
 };
 
 // ── Proprietários ──
+async function carregarCacheUnidades(){
+  const snap = await getDocs(query(collection(db,'unidades'),orderBy('numero')));
+  cacheUnidades = snap.docs.map(d=>({id:d.id,...d.data()}));
+}
+function unidadeLabel(u){ return `${u.bloco?`Bloco ${u.bloco} — `:''}Unidade ${u.numero}`; }
+function renderChecklistUnidades(selecionadas){
+  $('mp-unidades-lista').innerHTML = cacheUnidades.length
+    ? cacheUnidades.map(u=>`
+        <div class="form-check">
+          <input class="form-check-input mp-unidade-chk" type="checkbox" value="${u.id}" id="mpu-${u.id}" ${selecionadas.includes(u.id)?'checked':''}>
+          <label class="form-check-label" for="mpu-${u.id}">${unidadeLabel(u)}</label>
+        </div>`).join('')
+    : '<div class="text-muted small py-1">Nenhuma unidade cadastrada.</div>';
+}
 async function carregarProprietarios(){
   spin(true);
   try{
     const snap = await getDocs(query(collection(db,'proprietarios'),orderBy('nome_completo')));
     cacheProprietarios = snap.docs.map(d=>({id:d.id,...d.data()}));
-    $('tb-proprietarios').innerHTML = cacheProprietarios.length ? cacheProprietarios.map(p=>`
+    await carregarCacheUnidades();
+    $('tb-proprietarios').innerHTML = cacheProprietarios.length ? cacheProprietarios.map(p=>{
+      const unidadesDoProp = cacheUnidades.filter(u=>u.proprietario_id===p.id).map(unidadeLabel).join(', ') || '—';
+      return `
       <tr>
         <td>${p.nome_completo}</td><td>${p.cpf||'—'}</td><td>${p.email||'—'}</td>
         <td>${p.telefone||'—'}</td>
+        <td>${unidadesDoProp}</td>
         <td><span class="badge ${p.ativo?'bg-success':'bg-danger'}">${p.ativo?'Ativo':'Inativo'}</span></td>
         <td><button class="btn btn-sm btn-outline-primary" onclick="editarProprietario('${p.id}')"><i class="bi bi-pencil"></i></button></td>
-      </tr>`).join('')
-    : '<tr><td colspan="6" class="text-center text-muted py-4">Nenhum proprietário.</td></tr>';
+      </tr>`;}).join('')
+    : '<tr><td colspan="7" class="text-center text-muted py-4">Nenhum proprietário.</td></tr>';
   } finally { spin(false); }
 }
-window.abrirModalProprietario = function(){
+window.abrirModalProprietario = async function(){
   $('modal-prop-titulo').textContent='Novo Proprietário';
   ['mp-id','mp-nome','mp-cpf','mp-tel','mp-email'].forEach(id=>$(id).value='');
-  $('mp-ativo').checked=true; modal('modal-proprietario').show();
+  $('mp-ativo').checked=true;
+  await carregarCacheUnidades();
+  renderChecklistUnidades([]);
+  modal('modal-proprietario').show();
 };
-window.editarProprietario = function(id){
+window.editarProprietario = async function(id){
   const p=cacheProprietarios.find(x=>x.id===id); if(!p) return;
   $('modal-prop-titulo').textContent='Editar Proprietário';
   $('mp-id').value=id; $('mp-nome').value=p.nome_completo||''; $('mp-cpf').value=p.cpf||'';
   $('mp-tel').value=p.telefone||''; $('mp-email').value=p.email||''; $('mp-ativo').checked=!!p.ativo;
+  await carregarCacheUnidades();
+  const vinculadas = cacheUnidades.filter(u=>u.proprietario_id===id).map(u=>u.id);
+  renderChecklistUnidades(vinculadas);
   modal('modal-proprietario').show();
 };
 window.salvarProprietario = async function(){
   const id=$('mp-id').value; const nome=$('mp-nome').value.trim(); const cpf=$('mp-cpf').value.trim();
   if(!nome||!cpf){ toast('Preencha nome e CPF.','error'); return; }
   const data={nome_completo:nome,cpf,telefone:$('mp-tel').value.trim()||null,email:$('mp-email').value.trim()||null,ativo:$('mp-ativo').checked};
+  const unidadesSelecionadas = Array.from(document.querySelectorAll('.mp-unidade-chk:checked')).map(c=>c.value);
   spin(true);
   try{
+    let propId = id;
     if(id) await updateDoc(doc(db,'proprietarios',id),data);
-    else await addDoc(collection(db,'proprietarios'),data);
+    else { const ref = await addDoc(collection(db,'proprietarios'),data); propId = ref.id; }
+
+    // Sincroniza o vínculo unidade <-> proprietário nos dois sentidos
+    await carregarCacheUnidades();
+    const ajustes = cacheUnidades
+      .filter(u => unidadesSelecionadas.includes(u.id) !== (u.proprietario_id===propId))
+      .map(u => updateDoc(doc(db,'unidades',u.id), { proprietario_id: unidadesSelecionadas.includes(u.id) ? propId : null }));
+    await Promise.all(ajustes);
+
     toast('Proprietário salvo!'); modal('modal-proprietario').hide(); carregarProprietarios();
   } catch(e){ toast(e.message,'error'); } finally{ spin(false); }
 };
