@@ -6449,6 +6449,16 @@
     renderFormEdit() {
       const m = morSelected || { id:null, nome:'', cpf:'', rg:'', unidade:'', bloco:'', tel:'', cel:'', perfil:'Titular', ativo:true, obs:'', veiculos:[], foto:'', cadastro: new Date().toLocaleDateString('pt-BR') };
       const isNew = !m.id;
+
+      // Selects dinâmicos baseados no unidDB
+      const blocos = [...new Set(unidDB.map(u => u.bloco))].sort();
+      const blocoAtual = m.bloco || blocos[0] || '';
+      const blocoOpts = blocos.map(b => `<option value="${b}" ${blocoAtual===b?'selected':''}>${b}</option>`).join('');
+      const unidsBloco = unidDB.filter(u => u.bloco === blocoAtual);
+      const unidOpts = unidsBloco.length
+        ? unidsBloco.map(u => `<option value="${u.numero}" ${m.unidade===u.numero?'selected':''}>${u.numero}</option>`).join('')
+        : '<option value="">— sem unidades —</option>';
+
       document.getElementById('detail-tabs').style.display = 'flex';
       document.getElementById('detail-content').innerHTML = `
         <div style="margin-bottom:16px;padding:10px 14px;background:rgba(31,111,235,.08);border:1px solid rgba(31,111,235,.3);border-radius:8px;font-size:12px;color:#2060b0">
@@ -6477,12 +6487,16 @@
                   </select>
                 </div>
                 <div class="field">
-                  <label>Bloco</label>
-                  <input type="text" id="f-bloco" value="${m.bloco}" placeholder="A">
+                  <label>Bloco <span class="req">*</span></label>
+                  <select id="f-bloco" onchange="moradores._onBlocoChange(this.value)">
+                    ${blocoOpts}
+                  </select>
                 </div>
                 <div class="field">
                   <label>Unidade <span class="req">*</span></label>
-                  <input type="text" id="f-unidade" value="${m.unidade}" placeholder="101">
+                  <select id="f-unidade">
+                    ${unidOpts}
+                  </select>
                 </div>
               </div>
             </div>
@@ -6524,6 +6538,15 @@
           <button class="btn btn-secondary" onclick="moradores.cancelar()">Cancelar</button>
         </div>
       `;
+    },
+
+    _onBlocoChange(bloco) {
+      const sel = document.getElementById('f-unidade');
+      if (!sel) return;
+      const unids = unidDB.filter(u => u.bloco === bloco);
+      sel.innerHTML = unids.length
+        ? unids.map(u => `<option value="${u.numero}">${u.numero}</option>`).join('')
+        : '<option value="">— sem unidades —</option>';
     },
 
     renderVeiculos() {
@@ -6661,13 +6684,15 @@
     salvar() {
       const nome    = document.getElementById('f-nome')?.value.trim();
       const cpf     = document.getElementById('f-cpf')?.value.trim();
-      const unidade = document.getElementById('f-unidade')?.value.trim();
+      const bloco   = document.getElementById('f-bloco')?.value;
+      const unidade = document.getElementById('f-unidade')?.value;
       if (!nome)    { showToast('Nome é obrigatório.', 'err'); return; }
+      if (!bloco)   { showToast('Bloco é obrigatório.', 'err'); return; }
       if (!unidade) { showToast('Unidade é obrigatória.', 'err'); return; }
       const data = {
         nome, cpf,
         rg:      document.getElementById('f-rg')?.value.trim(),
-        bloco:   document.getElementById('f-bloco')?.value.trim(),
+        bloco,
         unidade,
         perfil:  document.getElementById('f-perfil')?.value,
         ativo:   document.getElementById('f-ativo')?.value === '1',
