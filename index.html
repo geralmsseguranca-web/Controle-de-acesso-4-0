@@ -9,6 +9,7 @@
   import { initializeApp }                              from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
   import { getFirestore, doc, setDoc, getDoc,
            collection, onSnapshot, writeBatch }         from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
   // ══════════════════════════════════════════════════════
   //  ⚠️  SUBSTITUA PELOS DADOS DO SEU PROJETO FIREBASE  ⚠️
@@ -27,11 +28,35 @@
 
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
+  const auth = getAuth(app);
+
+  // ── Autenticação anônima ────────────────────────────────
+  // O Firestore deste projeto exige request.auth != null (compartilhado com
+  // outro sistema). Login anônimo satisfaz a regra sem precisar de senha
+  // e sem afetar os dados/regras do outro app.
+  let _authReady = false;
+  const _authReadyCallbacks = [];
+  function onAuthReady(cb) {
+    if (_authReady) cb(); else _authReadyCallbacks.push(cb);
+  }
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      _authReady = true;
+      _authReadyCallbacks.forEach(cb => cb());
+      _authReadyCallbacks.length = 0;
+    }
+  });
+  signInAnonymously(auth).catch(e => {
+    console.error('[Firebase Auth] Erro no login anônimo:', e);
+    setFbStatus('offline', 'Falha na autenticação: ' + e.message);
+  });
 
   // ── Estado do indicador de sincronização (header) ──────
   window._fbStatus = 'connecting';
+  window._fbLastMsg = '';
   function setFbStatus(state, msg) {
     window._fbStatus = state;
+    if (msg) window._fbLastMsg = msg;
     window.dispatchEvent(new CustomEvent('fb:status', { detail: { state, msg } }));
   }
   setFbStatus('connecting');
@@ -55,16 +80,18 @@
 
   // ── Salva array/objeto no Firestore (documento único por coleção)
   async function fbSalvar(localKey, dados) {
-    try {
-      const colecao = COLECOES[localKey];
-      if (!colecao) return;
-      const ref = doc(db, 'condominios', CONDOMINIO_ID, colecao, '_dados');
-      await setDoc(ref, { payload: JSON.stringify(dados), ts: Date.now() });
-      setFbStatus('online');
-    } catch(e) {
-      console.warn('[Firebase] Erro ao salvar ' + localKey, e);
-      setFbStatus('offline', e.message);
-    }
+    onAuthReady(async () => {
+      try {
+        const colecao = COLECOES[localKey];
+        if (!colecao) return;
+        const ref = doc(db, 'condominios', CONDOMINIO_ID, colecao, '_dados');
+        await setDoc(ref, { payload: JSON.stringify(dados), ts: Date.now() });
+        setFbStatus('online');
+      } catch(e) {
+        console.warn('[Firebase] Erro ao salvar ' + localKey, e);
+        setFbStatus('offline', e.message);
+      }
+    });
   }
 
   // ── Intercepta o localStorage para espelhar no Firestore
@@ -95,11 +122,18 @@
     });
   }
 
-  // Iniciar listeners após o DOM carregar
-  window.addEventListener('DOMContentLoaded', () => {
+  // Iniciar listeners após o DOM carregar E a autenticação anônima estar pronta
+  let _listenersIniciados = false;
+  function _iniciarListenersFirebase() {
+    if (_listenersIniciados) return;
+    _listenersIniciados = true;
     Object.keys(COLECOES).forEach(escutarColecao);
     console.info('[Firebase] Sincronização ativa.');
-  });
+  }
+  let _domReady = false;
+  function _tentarIniciar() { if (_domReady) onAuthReady(_iniciarListenersFirebase); }
+  window.addEventListener('DOMContentLoaded', () => { _domReady = true; _tentarIniciar(); });
+  onAuthReady(_tentarIniciar);
 
   // Expõe fbSalvar globalmente para uso direto (opcional)
   window._fbSalvar = fbSalvar;
@@ -3348,7 +3382,7 @@
   </div>
 
   <div class="header-status">
-    <div class="fb-pill" id="fb-status-pill" data-state="connecting" title="Status da sincronização com a nuvem">
+    <div class="fb-pill" id="fb-status-pill" data-state="connecting" title="Status da sincronização com a nuvem" onclick="if(window._fbLastMsg) alert('Status: ' + (window._fbStatus||'') + '\n\n' + window._fbLastMsg); else alert('Status: ' + (window._fbStatus||'conectando') + '\n\nNenhum detalhe de erro registrado ainda.');" style="cursor:pointer">
       <svg class="fb-pill-icon" id="fb-status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/>
       </svg>
