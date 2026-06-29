@@ -1311,49 +1311,51 @@
     padding: 6px;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
   }
 
   .mor-list::-webkit-scrollbar { width: 4px; }
   .mor-list::-webkit-scrollbar-track { background: transparent; }
   .mor-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
+  /* ── MOR-CARD ─────────────────────────────────────────── */
   .mor-card {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 10px;
-    border-radius: 7px;
-    border: 1px solid transparent;
+    padding: 8px 10px 8px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    border-left: 3px solid transparent;
     cursor: pointer;
-    transition: background .13s, border-color .13s;
-    background: var(--surface2);
+    transition: background .13s, border-color .13s, box-shadow .13s;
+    background: var(--surface);
   }
-
-  .mor-card:hover    { border-color: var(--border); background: var(--bg); }
-  .mor-card.selected { border-color: var(--accent); background: rgba(31,111,235,.08); }
+  .mor-card:hover    { border-color: var(--border); background: var(--surface2); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .mor-card.selected { border-left-color: var(--green); border-color: var(--green-dim); background: rgba(58,88,32,.07); box-shadow: 0 1px 6px rgba(58,88,32,.12); }
   .mor-card.inactive { opacity: .5; }
 
   .mor-avatar {
-    width: 40px; height: 40px;
+    width: 38px; height: 38px;
+    min-width: 38px;
     border-radius: 8px;
-    background: var(--surface);
-    border: 2px solid var(--border);
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
     flex-shrink: 0;
-    font-size: 15px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 800;
     color: var(--text-muted);
     text-transform: uppercase;
   }
-
-  .mor-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .mor-card.selected .mor-avatar { border-color: var(--green-dim); }
+  .mor-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
   .mor-card-info { flex: 1; min-width: 0; }
   .mor-card-name {
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text);
     white-space: nowrap;
     overflow: hidden;
@@ -1362,11 +1364,36 @@
   .mor-card-meta {
     font-size: 10px;
     color: var(--text-muted);
-    margin-top: 1px;
+    margin-top: 3px;
     display: flex;
-    gap: 6px;
+    gap: 5px;
     align-items: center;
   }
+  .mor-card-unidade {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0px 5px;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: .3px;
+    font-family: monospace;
+    white-space: nowrap;
+  }
+  .mor-card-perfil {
+    border-radius: 3px;
+    padding: 0px 5px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .mor-card-perfil.titular     { background: rgba(31,111,235,.1);  color: #2060b0; }
+  .mor-card-perfil.dependente  { background: rgba(130,80,180,.1);  color: #7040a0; }
+  .mor-card-perfil.funcionario { background: rgba(210,153,34,.12); color: #907010; }
+  .mor-card-perfil.proprietario{ background: rgba(46,160,67,.1);   color: #246030; }
 
   .mor-card-status {
     width: 7px; height: 7px;
@@ -1659,20 +1686,27 @@
   .mor-list-panel { width:310px;min-width:250px;border-right:2px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--surface); }
   .mor-list-header { padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--text-muted);flex-shrink:0;background:var(--surface2); }
   .mor-list-header strong { color:var(--green); }
-  .mor-list { flex:1;overflow-y:auto;padding:4px;display:flex;flex-direction:column;gap:2px; }
+  .mor-list { flex:1;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:4px; }
   .mor-list::-webkit-scrollbar { width:4px; }
   .mor-list::-webkit-scrollbar-thumb { background:var(--border);border-radius:2px; }
-  .mor-card { display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:2px;border:1px solid var(--border2);cursor:pointer;transition:all .1s;background:var(--surface); }
-  .mor-card:hover { border-color:var(--border);background:var(--surface2); }
-  .mor-card.selected { border-color:#3a5820;background:rgba(58,88,32,.1);border-left:3px solid var(--green); }
-  .mor-card.inactive { opacity:.55; }
-  .mor-avatar { width:38px;height:38px;border-radius:2px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-size:14px;font-weight:700;color:var(--text-muted);text-transform:uppercase; }
-  .mor-avatar img { width:100%;height:100%;object-fit:cover; }
+  .mor-card { display:flex;align-items:center;gap:10px;padding:8px 10px 8px 8px;border-radius:6px;border:1px solid var(--border2);border-left:3px solid transparent;cursor:pointer;transition:background .13s,border-color .13s,box-shadow .13s;background:var(--surface); }
+  .mor-card:hover { border-color:var(--border);background:var(--surface2);box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  .mor-card.selected { border-left-color:var(--green);border-color:var(--green-dim);background:rgba(58,88,32,.07);box-shadow:0 1px 6px rgba(58,88,32,.12); }
+  .mor-card.inactive { opacity:.5; }
+  .mor-avatar { width:38px;height:38px;min-width:38px;border-radius:8px;background:var(--surface2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-size:14px;font-weight:800;color:var(--text-muted);text-transform:uppercase; }
+  .mor-card.selected .mor-avatar { border-color:var(--green-dim); }
+  .mor-avatar img { width:100%;height:100%;object-fit:cover;display:block; }
   .mor-card-info { flex:1;min-width:0; }
-  .mor-card-name { font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-  .mor-card-meta { font-size:9px;color:var(--text-muted);margin-top:1px;display:flex;gap:5px;align-items:center; }
-  .mor-card-status { width:6px;height:6px;border-radius:50%;flex-shrink:0; }
-  .mor-card-status.on  { background:#3a9a1a;box-shadow:0 0 3px #3a9a1a; }
+  .mor-card-name { font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .mor-card-meta { font-size:10px;color:var(--text-muted);margin-top:3px;display:flex;gap:5px;align-items:center; }
+  .mor-card-unidade { background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:0px 5px;font-size:9px;font-weight:700;color:var(--text-muted);letter-spacing:.3px;font-family:monospace;white-space:nowrap; }
+  .mor-card-perfil { border-radius:3px;padding:0px 5px;font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap; }
+  .mor-card-perfil.titular { background:rgba(31,111,235,.1);color:#2060b0; }
+  .mor-card-perfil.dependente { background:rgba(130,80,180,.1);color:#7040a0; }
+  .mor-card-perfil.funcionario { background:rgba(210,153,34,.12);color:#907010; }
+  .mor-card-perfil.proprietario { background:rgba(46,160,67,.1);color:#246030; }
+  .mor-card-status { width:7px;height:7px;border-radius:50%;flex-shrink:0; }
+  .mor-card-status.on { background:var(--green-glow);box-shadow:0 0 4px var(--green-glow); }
   .mor-card-status.off { background:var(--text-muted); }
   .mor-detail { flex:1;display:flex;flex-direction:column;overflow:hidden; }
   .detail-tabs { display:flex;background:var(--surface2);border-bottom:2px solid var(--border);flex-shrink:0; }
@@ -6304,15 +6338,15 @@
         const ini = m.nome.split(' ').slice(0,2).map(w=>w[0]).join('');
         const sel = morSelected?.id === m.id ? 'selected' : '';
         const ina = !m.ativo ? 'inactive' : '';
+        const perfilKey = (m.perfil||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
         return `<div class="mor-card ${sel} ${ina}" onclick="moradores.select(${m.id})">
           <div class="mor-avatar">${m.foto ? `<img src="${m.foto}">` : ini}</div>
           <div class="mor-card-info">
             <div class="mor-card-name">${m.nome}</div>
             <div class="mor-card-meta">
               <span class="mor-card-status ${m.ativo?'on':'off'}"></span>
-              <span>Bl.${m.bloco} Un.${m.unidade}</span>
-              <span>·</span>
-              <span>${m.perfil}</span>
+              <span class="mor-card-unidade">Bl.${m.bloco} · Un.${m.unidade}</span>
+              <span class="mor-card-perfil ${perfilKey}">${m.perfil}</span>
             </div>
           </div>
         </div>`;
