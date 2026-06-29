@@ -6,469 +6,830 @@
 <title>Controle de Visitantes — PJ Tecnologia</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
+/* ═══════════════════════════════════════════
+   FC ACCESS STYLE — PJ Tecnologia e Sistemas
+═══════════════════════════════════════════ */
 :root {
-  --navy: #050d1a;
-  --blue1: #0a1f3d;
-  --blue2: #0d3878;
-  --cyan: #00c8f8;
-  --cyan2: #00eaff;
-  --accent: #f0a500;
-  --sidebar-w: 230px;
+  --fc-bg:       #1a1d23;
+  --fc-panel:    #21252d;
+  --fc-card:     #272b34;
+  --fc-border:   #333844;
+  --fc-header:   #1e3a5f;
+  --fc-blue:     #1565c0;
+  --fc-blue2:    #1976d2;
+  --fc-cyan:     #00bcd4;
+  --fc-green:    #43a047;
+  --fc-amber:    #f57c00;
+  --fc-red:      #c62828;
+  --fc-text:     #d0d4de;
+  --fc-text2:    #8a909e;
+  --fc-white:    #eef1f7;
+  --fc-row-odd:  #272b34;
+  --fc-row-even: #2c303a;
+  --fc-row-hover:#2e364a;
+  --topbar-h:    42px;
+  --tabs-h:      38px;
 }
 
-/* ── Base ── */
-body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; }
+*, *::before, *::after { box-sizing: border-box; }
 
-/* ── Sidebar ── */
-.sidebar {
-  width: var(--sidebar-w); min-height: 100vh;
-  background: linear-gradient(180deg, #061630 0%, #0a1d3a 100%);
-  position: fixed; top: 0; left: 0; z-index: 200;
-  border-right: 1px solid rgba(0,200,248,.12);
-  display: flex; flex-direction: column;
+body {
+  background: var(--fc-bg);
+  color: var(--fc-text);
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  font-size: 13px;
+  margin: 0;
+  overflow-x: hidden;
 }
 
-/* PJ Logo */
-.sidebar-brand {
-  padding: 1rem 0.85rem;
-  border-bottom: 1px solid rgba(0,200,248,.15);
-  display: flex; align-items: center; gap: 10px;
-  background: linear-gradient(160deg,#061630,#0a1f3d);
+/* ── TOPBAR ─────────────────────────────── */
+.fc-topbar {
+  height: var(--topbar-h);
+  background: linear-gradient(90deg, #0d1b2e 0%, #152644 50%, #0d1b2e 100%);
+  border-bottom: 2px solid var(--fc-blue);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 300;
+  gap: 10px;
 }
-.sb-hex { position:relative; width:44px; height:48px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-.sb-hex svg { position:absolute; inset:0; width:100%; height:100%; filter:drop-shadow(0 0 6px rgba(0,200,248,.4)); }
-.sb-mono { position:relative; z-index:2; font-family:'Orbitron',sans-serif; font-size:.95rem; font-weight:900; letter-spacing:-1px; color:#fff; line-height:1; }
-.sb-mono em { color:var(--cyan2); font-style:normal; }
-.sb-text { display:flex; flex-direction:column; gap:1px; }
-.sb-brand { font-family:'Orbitron',sans-serif; font-size:.68rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#eef4ff; line-height:1.2; }
-.sb-brand em { color:var(--cyan2); font-style:normal; }
-.sb-sub { font-size:.6rem; letter-spacing:3px; text-transform:uppercase; color:rgba(0,200,248,.6); line-height:1; }
 
-/* Nav */
-.sidebar nav { flex:1; overflow-y:auto; padding:0.5rem 0; }
-.nav-section { font-size:.65rem; text-transform:uppercase; letter-spacing:.1em; color:rgba(255,255,255,.35); padding:.75rem 1rem .25rem; }
-.nav-link {
-  color:rgba(255,255,255,.75); padding:.6rem .9rem; border-radius:7px;
-  margin:1px 8px; font-size:.85rem; display:flex; align-items:center; gap:.5rem;
-  cursor:pointer; transition:.15s; text-decoration:none;
+.fc-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-right: 6px;
 }
-.nav-link:hover, .nav-link.active { background:rgba(0,200,248,.12); color:#fff; }
-.nav-link.active { border-left:3px solid var(--cyan2); }
-
-/* Sidebar user */
-.sidebar-user {
-  padding:.75rem 1rem; border-top:1px solid rgba(0,200,248,.12);
-  display:flex; align-items:center; gap:.6rem;
+.fc-logo-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--fc-blue);
+  border: 1.5px solid var(--fc-cyan);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -1px;
 }
-.user-avatar {
-  width:32px; height:32px; border-radius:50%; background:var(--blue2);
-  border:1.5px solid var(--cyan2); display:flex; align-items:center; justify-content:center;
-  font-size:.8rem; font-weight:700; color:#fff; flex-shrink:0;
+.fc-logo-icon em { color: var(--fc-cyan); font-style: normal; }
+.fc-logo-text { font-size: 12px; font-weight: 700; color: var(--fc-white); letter-spacing: 0.5px; line-height: 1.2; }
+.fc-logo-sub  { font-size: 9px; color: var(--fc-cyan); text-transform: uppercase; letter-spacing: 1px; }
+
+.topbar-sep { width: 1px; height: 24px; background: var(--fc-border); flex-shrink: 0; }
+
+.topbar-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fc-cyan);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  flex: 1;
 }
-.user-name { font-size:.78rem; color:#eef4ff; font-weight:600; line-height:1.2; }
-.user-role { font-size:.65rem; color:rgba(0,200,248,.6); text-transform:uppercase; letter-spacing:.05em; }
-.btn-sair { background:none; border:none; color:rgba(255,255,255,.4); cursor:pointer; margin-left:auto; font-size:1rem; transition:.15s; }
-.btn-sair:hover { color:var(--cyan2); }
 
-/* ── Main ── */
-.main-content { margin-left:var(--sidebar-w); min-height:100vh; }
-.topbar {
-  background:#fff; padding:.7rem 1.4rem;
-  border-bottom:1px solid #e0e0e0;
-  display:flex; justify-content:space-between; align-items:center;
-  position:sticky; top:0; z-index:99;
+.topbar-clock {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--fc-white);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  flex-shrink: 0;
 }
-.topbar .page-title { font-size:1rem; font-weight:600; color:#333; margin:0; }
-.topbar .user-info { font-size:.82rem; color:#555; display:flex; align-items:center; gap:.5rem; }
-.content-area { padding:1.5rem; }
 
-/* ── Cards ── */
-.stat-card {
-  background:#fff; border-radius:10px; padding:1.2rem;
-  border-left:4px solid #2d5a8e; box-shadow:0 1px 4px rgba(0,0,0,.08);
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  flex-shrink: 0;
 }
-.stat-value { font-size:2rem; font-weight:700; color:#1e3a5f; }
-.stat-label { font-size:.75rem; text-transform:uppercase; color:#888; letter-spacing:.05em; }
-.stat-icon { font-size:2rem; opacity:.15; }
-.card { border:none; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
-.card-header { background:#fff; border-bottom:1px solid #f0f0f0; font-weight:600; font-size:.9rem; }
+.topbar-avatar {
+  width: 26px;
+  height: 26px;
+  background: var(--fc-blue);
+  border: 1.5px solid var(--fc-cyan);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+}
+.topbar-user-info { line-height: 1.2; }
+.topbar-user-name  { font-size: 11px; color: var(--fc-white); font-weight: 600; }
+.topbar-user-role  { font-size: 9px; color: var(--fc-cyan); text-transform: uppercase; }
 
-/* ── Table ── */
-.table thead th { background:#f8f9fa; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:#555; }
-.table td { font-size:.88rem; vertical-align:middle; }
+.btn-logout {
+  background: none;
+  border: 1px solid var(--fc-border);
+  border-radius: 4px;
+  color: var(--fc-text2);
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: .15s;
+}
+.btn-logout:hover { border-color: var(--fc-red); color: #ff6b6b; }
 
-/* ── Badges ── */
-.badge { font-size:.72rem; }
+.btn-menu-mobile {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--fc-cyan);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+}
 
-/* ── Buttons ── */
-.btn-primary { background:#1e3a5f; border-color:#1e3a5f; }
-.btn-primary:hover { background:#0d3878; border-color:#0d3878; }
+/* ── TABS BAR ───────────────────────────── */
+.fc-tabs {
+  height: var(--tabs-h);
+  background: #171a21;
+  border-bottom: 1px solid var(--fc-border);
+  display: flex;
+  align-items: stretch;
+  position: fixed;
+  top: var(--topbar-h);
+  left: 0; right: 0;
+  z-index: 299;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.fc-tabs::-webkit-scrollbar { height: 2px; }
+.fc-tabs::-webkit-scrollbar-thumb { background: var(--fc-blue); }
 
-/* ── Login ── */
+.fc-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 14px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--fc-text2);
+  cursor: pointer;
+  border-right: 1px solid var(--fc-border);
+  white-space: nowrap;
+  transition: .15s;
+  user-select: none;
+  flex-shrink: 0;
+  border-bottom: 2px solid transparent;
+}
+.fc-tab:hover { background: #1e2330; color: var(--fc-white); }
+.fc-tab.active {
+  background: var(--fc-panel);
+  color: var(--fc-white);
+  border-bottom: 2px solid var(--fc-blue2);
+}
+.fc-tab .bi { font-size: 13px; }
+
+/* ── MAIN ───────────────────────────────── */
+.fc-main {
+  margin-top: calc(var(--topbar-h) + var(--tabs-h));
+  padding: 10px;
+  min-height: calc(100vh - var(--topbar-h) - var(--tabs-h));
+}
+
+/* ── SECTION HEADER ─────────────────────── */
+.fc-section-hdr {
+  background: var(--fc-header);
+  border-left: 4px solid var(--fc-cyan);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fc-white);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 4px 4px 0 0;
+  margin-bottom: 0;
+}
+.fc-section-hdr .bi { font-size: 14px; color: var(--fc-cyan); }
+
+/* ── PANELS ─────────────────────────────── */
+.fc-panel {
+  background: var(--fc-panel);
+  border: 1px solid var(--fc-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.fc-panel-body {
+  padding: 12px;
+}
+
+/* ── STAT CARDS ─────────────────────────── */
+.fc-stat {
+  background: var(--fc-card);
+  border: 1px solid var(--fc-border);
+  border-top: 3px solid var(--fc-blue);
+  border-radius: 4px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.fc-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.fc-stat-val { font-size: 24px; font-weight: 700; line-height: 1; color: var(--fc-white); }
+.fc-stat-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--fc-text2); margin-top: 2px; }
+
+/* ── TABLE ──────────────────────────────── */
+.fc-table-wrap { overflow-x: auto; }
+.fc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.fc-table thead tr {
+  background: #181c24;
+  border-bottom: 2px solid var(--fc-blue);
+}
+.fc-table thead th {
+  padding: 7px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--fc-cyan);
+  white-space: nowrap;
+  border-right: 1px solid var(--fc-border);
+}
+.fc-table thead th:last-child { border-right: none; }
+.fc-table tbody tr:nth-child(odd)  { background: var(--fc-row-odd); }
+.fc-table tbody tr:nth-child(even) { background: var(--fc-row-even); }
+.fc-table tbody tr:hover { background: var(--fc-row-hover); }
+.fc-table td {
+  padding: 6px 10px;
+  border-right: 1px solid rgba(255,255,255,.04);
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  vertical-align: middle;
+  color: var(--fc-text);
+}
+.fc-table td:last-child { border-right: none; }
+
+/* ── BADGES ─────────────────────────────── */
+.fc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.fc-badge-aguardando { background: rgba(245,124,0,.15); color: #ffa726; border: 1px solid rgba(245,124,0,.3); }
+.fc-badge-emvisita   { background: rgba(67,160,71,.15);  color: #66bb6a; border: 1px solid rgba(67,160,71,.3); }
+.fc-badge-finalizada { background: rgba(120,130,150,.15);color: #9ca3af; border: 1px solid rgba(120,130,150,.3); }
+.fc-badge-negado     { background: rgba(198,40,40,.15);  color: #ef5350; border: 1px solid rgba(198,40,40,.3); }
+.fc-badge-admin   { background: rgba(126,87,194,.2); color: #ce93d8; border: 1px solid rgba(126,87,194,.3); }
+.fc-badge-sindico { background: rgba(21,101,192,.2); color: #90caf9; border: 1px solid rgba(21,101,192,.3); }
+.fc-badge-porteiro{ background: rgba(55,65,81,.3);   color: #9ca3af; border: 1px solid rgba(55,65,81,.5); }
+.fc-badge-ativo   { background: rgba(67,160,71,.15); color: #66bb6a; border: 1px solid rgba(67,160,71,.3); }
+.fc-badge-inativo { background: rgba(198,40,40,.15); color: #ef5350; border: 1px solid rgba(198,40,40,.3); }
+.fc-badge-tipo    { background: rgba(0,188,212,.1);  color: #4dd0e1; border: 1px solid rgba(0,188,212,.25); }
+
+/* ── BUTTONS ─────────────────────────────── */
+.fc-btn {
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: .15s;
+  line-height: 1.4;
+}
+.fc-btn-primary  { background: var(--fc-blue); border-color: var(--fc-blue2); color: #fff; }
+.fc-btn-primary:hover  { background: #1976d2; }
+.fc-btn-success  { background: #2e7d32; border-color: #43a047; color: #fff; }
+.fc-btn-success:hover  { background: #388e3c; }
+.fc-btn-danger   { background: #b71c1c; border-color: #c62828; color: #fff; }
+.fc-btn-danger:hover   { background: #c62828; }
+.fc-btn-warning  { background: #e65100; border-color: #f57c00; color: #fff; }
+.fc-btn-warning:hover  { background: #f57c00; }
+.fc-btn-outline  { background: transparent; border-color: var(--fc-border); color: var(--fc-text2); }
+.fc-btn-outline:hover  { border-color: var(--fc-text2); color: var(--fc-white); }
+.fc-btn-sm { padding: 2px 8px; font-size: 11px; }
+.fc-btn-icon { padding: 3px 7px; }
+
+/* ── FORMS ───────────────────────────────── */
+.fc-form-label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--fc-text2);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 3px;
+}
+.fc-form-control,
+.fc-form-select {
+  width: 100%;
+  background: #1a1d23;
+  border: 1px solid var(--fc-border);
+  border-radius: 3px;
+  color: var(--fc-white);
+  padding: 5px 8px;
+  font-size: 12.5px;
+  outline: none;
+  transition: border-color .15s;
+}
+.fc-form-control:focus,
+.fc-form-select:focus {
+  border-color: var(--fc-blue2);
+  box-shadow: 0 0 0 2px rgba(21,101,192,.2);
+}
+.fc-form-control::placeholder { color: var(--fc-text2); opacity: .7; }
+textarea.fc-form-control { resize: vertical; min-height: 60px; }
+.fc-form-select option { background: #21252d; }
+
+.fc-check { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: var(--fc-text); }
+.fc-check input[type=checkbox] {
+  width: 14px; height: 14px;
+  accent-color: var(--fc-blue2);
+  cursor: pointer;
+}
+
+.fc-divider { border: none; border-top: 1px solid var(--fc-border); margin: 12px 0; }
+
+/* ── DETAIL ROWS ─────────────────────────── */
+.fc-detail-row {
+  display: flex;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  font-size: 12px;
+}
+.fc-detail-row:last-child { border: none; }
+.fc-detail-lbl { width: 130px; color: var(--fc-text2); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; padding-top: 1px; }
+.fc-detail-val { flex: 1; color: var(--fc-white); }
+
+/* ── STATUS INDICATOR ────────────────────── */
+.fc-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0,0,0,.2);
+  border-radius: 3px;
+  border-left: 3px solid var(--fc-blue2);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+.fc-status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: blink 1.4s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── VIEWS ───────────────────────────────── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── LOGIN ───────────────────────────────── */
 #login-screen {
-  min-height:100vh; display:flex; align-items:center; justify-content:center;
-  background:linear-gradient(135deg, #061630 0%, #0d3878 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 30% 40%, #152644 0%, #0d1118 70%);
 }
-.login-card { width:420px; border-radius:16px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.5); }
-.login-header { background:linear-gradient(160deg,#061630,#0a1f3d); padding:2rem; text-align:center; border-bottom:1px solid rgba(0,200,248,.2); }
-.login-hex { position:relative; width:72px; height:79px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; }
-.login-hex svg { position:absolute; inset:0; width:100%; height:100%; filter:drop-shadow(0 0 12px rgba(0,200,248,.5)); }
-.login-hex-mono { position:relative; z-index:2; font-family:'Orbitron',sans-serif; font-size:1.4rem; font-weight:900; letter-spacing:-1px; color:#fff; }
-.login-hex-mono em { color:var(--cyan2); font-style:normal; }
-.login-title { font-family:'Orbitron',sans-serif; font-size:.9rem; font-weight:700; letter-spacing:2px; color:#eef4ff; text-transform:uppercase; }
-.login-sub { font-size:.65rem; letter-spacing:4px; color:rgba(0,200,248,.6); text-transform:uppercase; margin-top:2px; }
+.login-box {
+  width: 360px;
+  background: var(--fc-panel);
+  border: 1px solid var(--fc-border);
+  border-top: 3px solid var(--fc-blue2);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.7);
+}
+.login-header {
+  background: linear-gradient(135deg, #0d1b2e 0%, #1e3a5f 100%);
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid var(--fc-border);
+}
+.login-icon {
+  width: 56px; height: 56px;
+  background: var(--fc-blue);
+  border: 2px solid var(--fc-cyan);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+  margin: 0 auto 10px;
+  letter-spacing: -1px;
+}
+.login-icon em { color: var(--fc-cyan); font-style: normal; }
+.login-title { font-size: 13px; font-weight: 700; color: var(--fc-white); text-transform: uppercase; letter-spacing: 1.5px; }
+.login-sub   { font-size: 10px; color: var(--fc-cyan); text-transform: uppercase; letter-spacing: 2px; margin-top: 2px; }
+.login-body  { padding: 20px; }
+.login-body .fc-form-label { margin-top: 10px; }
+.login-err { background: rgba(198,40,40,.15); border: 1px solid rgba(198,40,40,.3); border-radius: 3px; padding: 6px 10px; color: #ef5350; font-size: 11.5px; margin-bottom: 8px; display: none; }
+.login-footer { text-align: center; padding: 8px 20px 16px; }
+.login-footer a { font-size: 11px; color: var(--fc-text2); text-decoration: none; }
+.login-footer a:hover { color: var(--fc-cyan); }
 
-/* ── Modals / Views ── */
-.view { display:none; }
-.view.active { display:block; }
+/* ── MODAL (FC style) ────────────────────── */
+.modal-content {
+  background: var(--fc-panel) !important;
+  border: 1px solid var(--fc-border) !important;
+  border-top: 3px solid var(--fc-blue2) !important;
+  border-radius: 4px !important;
+  color: var(--fc-text) !important;
+}
+.modal-header {
+  background: var(--fc-header) !important;
+  border-bottom: 1px solid var(--fc-border) !important;
+  padding: 8px 14px !important;
+}
+.modal-title { font-size: 12px !important; font-weight: 700 !important; text-transform: uppercase; letter-spacing: 0.5px; color: var(--fc-white) !important; }
+.modal-body { padding: 14px !important; }
+.modal-footer { border-top: 1px solid var(--fc-border) !important; padding: 8px 14px !important; background: rgba(0,0,0,.15) !important; }
+.btn-close { filter: invert(1) !important; opacity: .6 !important; }
 
-/* ── Status colors ── */
-.status-aguardando { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
-.status-em_visita  { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
-.status-finalizada { background:#f3f4f6; color:#374151; border:1px solid #d1d5db; }
-.status-negado     { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
-
-/* ── Form ── */
-.form-label { font-size:.83rem; font-weight:600; color:#555; }
-.form-control, .form-select { font-size:.88rem; }
-.section-divider { border:none; border-top:1px solid #e5e7eb; margin:1.5rem 0; }
-
-/* ── Detail card ── */
-.detail-row { display:flex; padding:.5rem 0; border-bottom:1px solid #f0f0f0; font-size:.88rem; }
-.detail-row:last-child { border:none; }
-.detail-label { width:45%; color:#6b7280; font-weight:500; }
-.detail-val { flex:1; color:#111; }
-
-/* ── Alert toast ── */
-#toast-container { position:fixed; top:1rem; right:1rem; z-index:9999; display:flex; flex-direction:column; gap:.5rem; }
+/* ── TOAST ───────────────────────────────── */
+#toast-container { position: fixed; top: 56px; right: 10px; z-index: 9999; display: flex; flex-direction: column; gap: 4px; }
 .toast-msg {
-  background:#1e3a5f; color:#fff; padding:.75rem 1.2rem; border-radius:8px;
-  font-size:.85rem; box-shadow:0 4px 12px rgba(0,0,0,.2);
-  border-left:4px solid var(--cyan2); animation:slideIn .3s ease;
+  background: var(--fc-card);
+  color: var(--fc-text);
+  border: 1px solid var(--fc-border);
+  border-left: 4px solid var(--fc-blue2);
+  padding: 8px 14px;
+  border-radius: 3px;
+  font-size: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  animation: toastIn .25s ease;
+  min-width: 200px;
 }
-.toast-msg.success { border-left-color:#10b981; }
-.toast-msg.error   { border-left-color:#ef4444; }
-@keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:none} }
+.toast-msg.success { border-left-color: #43a047; }
+.toast-msg.error   { border-left-color: #c62828; }
+@keyframes toastIn { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:none} }
 
-/* ── Responsive ── */
-.btn-menu-mobile{ display:none; border:none; background:none; font-size:1.4rem; color:#0d3878; padding:.2rem .6rem; margin-right:.5rem; cursor:pointer; }
-.sidebar-overlay{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:1040; }
-@media(max-width:768px){
-  .sidebar{ transform:translateX(-100%); transition:.3s; z-index:1050; }
-  .sidebar.open{ transform:none; }
-  .main-content{ margin-left:0; }
-  .btn-menu-mobile{ display:inline-block; }
-  .sidebar-overlay.show{ display:block; }
+/* ── SPINNER ─────────────────────────────── */
+.spinner-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 9998;
+  display: flex; align-items: center; justify-content: center;
+}
+.spinner-box {
+  background: var(--fc-panel);
+  border: 1px solid var(--fc-border);
+  border-top: 2px solid var(--fc-blue2);
+  border-radius: 4px;
+  padding: 20px 28px;
+  text-align: center;
+}
+.spinner-box .spinner-border { color: var(--fc-cyan) !important; }
+.spinner-box p { font-size: 11px; color: var(--fc-text2); margin: 6px 0 0; }
+
+/* ── FOOTER ──────────────────────────────── */
+.fc-footer {
+  text-align: center;
+  color: var(--fc-text2);
+  font-size: 10px;
+  padding: 12px;
+  border-top: 1px solid var(--fc-border);
+  margin-top: 16px;
+  letter-spacing: 0.5px;
 }
 
-/* ── Footer ── */
-footer { text-align:center; color:#aaa; font-size:.75rem; padding:1rem; border-top:1px solid #e0e0e0; margin-top:2rem; }
-
-/* Spinner */
-.spinner-overlay { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:9998; display:flex; align-items:center; justify-content:center; }
-.spinner-box { background:#fff; border-radius:12px; padding:2rem 2.5rem; text-align:center; }
+/* ── RESPONSIVE ──────────────────────────── */
+@media (max-width: 767px) {
+  .btn-menu-mobile { display: block; }
+  .fc-tabs { display: none; }
+  .fc-main { margin-top: var(--topbar-h); }
+  .mobile-drawer {
+    position: fixed;
+    top: var(--topbar-h); left: 0; bottom: 0;
+    width: 220px;
+    background: #171a21;
+    border-right: 1px solid var(--fc-border);
+    z-index: 280;
+    transform: translateX(-100%);
+    transition: .25s;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+  .mobile-drawer.open { transform: none; }
+  .mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 270;
+  }
+  .mobile-overlay.show { display: block; }
+  .mobile-nav-item {
+    padding: 9px 16px;
+    font-size: 12px;
+    color: var(--fc-text2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+    transition: .1s;
+  }
+  .mobile-nav-item:hover, .mobile-nav-item.active {
+    background: rgba(21,101,192,.2);
+    color: var(--fc-white);
+  }
+  .mobile-nav-section {
+    padding: 8px 16px 4px;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--fc-text2);
+    opacity: .6;
+  }
+  .topbar-user-info { display: none; }
+}
 </style>
 </head>
 <body>
 
-<!-- ══ TOAST ══ -->
+<!-- TOAST -->
 <div id="toast-container"></div>
 
-<!-- ══ SPINNER ══ -->
+<!-- SPINNER -->
 <div id="spinner" class="spinner-overlay" style="display:none">
   <div class="spinner-box">
-    <div class="spinner-border text-primary mb-2" style="width:2.5rem;height:2.5rem;"></div>
-    <div style="font-size:.85rem;color:#555">Aguarde...</div>
+    <div class="spinner-border" style="width:2rem;height:2rem;" role="status"></div>
+    <p>Aguarde...</p>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     TELA DE LOGIN
-══════════════════════════════════════════ -->
+<!-- ══ LOGIN ══════════════════════════════════ -->
 <div id="login-screen">
-  <div class="login-card bg-white">
+  <div class="login-box">
     <div class="login-header">
-      <div class="login-hex">
-        <svg viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="lhG" x1="0" y1="0" x2="100" y2="110" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#0d3878"/><stop offset="100%" stop-color="#051225"/>
-            </linearGradient>
-            <linearGradient id="lhS" x1="0" y1="0" x2="100" y2="110" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#00eaff"/><stop offset="50%" stop-color="#0088cc"/><stop offset="100%" stop-color="#00c8f8"/>
-            </linearGradient>
-          </defs>
-          <polygon points="50,4 96,28 96,82 50,106 4,82 4,28" fill="url(#lhG)" stroke="url(#lhS)" stroke-width="2.5"/>
-          <polygon points="50,12 88,33 88,78 50,98 12,78 12,33" fill="none" stroke="rgba(0,200,248,0.18)" stroke-width="1"/>
-          <circle cx="50" cy="4" r="2.5" fill="#00eaff" opacity=".8"/>
-          <circle cx="96" cy="28" r="2.5" fill="#00eaff" opacity=".8"/>
-          <circle cx="96" cy="82" r="2.5" fill="#00eaff" opacity=".8"/>
-          <circle cx="50" cy="106" r="2.5" fill="#00eaff" opacity=".8"/>
-          <circle cx="4" cy="82" r="2.5" fill="#00eaff" opacity=".8"/>
-          <circle cx="4" cy="28" r="2.5" fill="#00eaff" opacity=".8"/>
-        </svg>
-        <div class="login-hex-mono">P<em>J</em></div>
-      </div>
+      <div class="login-icon">P<em>J</em></div>
       <div class="login-title">PJ Tecnologia</div>
       <div class="login-sub">Controle de Visitantes</div>
     </div>
-    <div class="p-4">
-      <h6 class="text-center mb-1 fw-bold">Bem-vindo!</h6>
-      <p class="text-center text-muted mb-3" style="font-size:.85rem">Faça login para continuar</p>
-      <div id="login-error" class="alert alert-danger py-2 mb-3" style="font-size:.82rem;display:none">E-mail ou senha inválidos.</div>
-      <div class="mb-3">
-        <input type="email" id="login-email" class="form-control" placeholder="E-mail" autocomplete="email">
-      </div>
-      <div class="mb-4">
-        <input type="password" id="login-senha" class="form-control" placeholder="Senha">
-      </div>
-      <button class="btn btn-primary w-100 py-2" onclick="fazerLogin()">
-        <i class="bi bi-box-arrow-in-right me-1"></i>Acessar
+    <div class="login-body">
+      <div id="login-error" class="login-err">E-mail ou senha inválidos.</div>
+      <label class="fc-form-label">E-mail</label>
+      <input type="email" id="login-email" class="fc-form-control" placeholder="seu@email.com" autocomplete="email">
+      <label class="fc-form-label" style="margin-top:10px">Senha</label>
+      <input type="password" id="login-senha" class="fc-form-control" placeholder="••••••••">
+      <button class="fc-btn fc-btn-primary w-100 mt-3" style="justify-content:center;padding:8px" onclick="fazerLogin()">
+        <i class="bi bi-box-arrow-in-right"></i> Acessar Sistema
       </button>
-      <p class="text-center mt-3 mb-0" style="font-size:.75rem">
-        <a href="javascript:void(0)" onclick="abrirPrimeiroAcesso()" class="text-decoration-none">Primeiro acesso? Criar administrador</a>
-      </p>
+    </div>
+    <div class="login-footer">
+      <a href="javascript:void(0)" onclick="abrirPrimeiroAcesso()">Primeiro acesso? Criar administrador</a>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     MODAL · PRIMEIRO ACESSO (criar administrador)
-══════════════════════════════════════════ -->
+<!-- ══ MODAL · PRIMEIRO ACESSO ══════════════ -->
 <div class="modal fade" id="modal-primeiro-acesso" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h6 class="modal-title fw-bold"><i class="bi bi-person-plus-fill me-1"></i>Criar usuário administrador</h6>
+        <h5 class="modal-title"><i class="bi bi-person-plus-fill me-1"></i>Criar Administrador</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <div id="pa-error" class="alert alert-danger py-2 mb-3" style="font-size:.82rem;display:none"></div>
-        <p class="text-muted" style="font-size:.8rem">Use esta opção apenas se ainda não existe nenhum administrador cadastrado no sistema.</p>
-        <div class="mb-3">
-          <label class="form-label small">Nome completo</label>
-          <input type="text" id="pa-nome" class="form-control" placeholder="Seu nome">
-        </div>
-        <div class="mb-3">
-          <label class="form-label small">E-mail</label>
-          <input type="email" id="pa-email" class="form-control" placeholder="seu@email.com" autocomplete="email">
-        </div>
-        <div class="mb-3">
-          <label class="form-label small">Senha</label>
-          <input type="password" id="pa-senha" class="form-control" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+        <div id="pa-error" class="login-err" style="display:none"></div>
+        <p style="font-size:11px;color:var(--fc-text2);margin-bottom:12px">Use apenas se ainda não existe administrador cadastrado.</p>
+        <div class="mb-2">
+          <label class="fc-form-label">Nome completo</label>
+          <input type="text" id="pa-nome" class="fc-form-control" placeholder="Seu nome">
         </div>
         <div class="mb-2">
-          <label class="form-label small">Confirmar senha</label>
-          <input type="password" id="pa-senha2" class="form-control" placeholder="Repita a senha" autocomplete="new-password">
+          <label class="fc-form-label">E-mail</label>
+          <input type="email" id="pa-email" class="fc-form-control" placeholder="seu@email.com" autocomplete="email">
+        </div>
+        <div class="mb-2">
+          <label class="fc-form-label">Senha</label>
+          <input type="password" id="pa-senha" class="fc-form-control" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+        </div>
+        <div class="mb-2">
+          <label class="fc-form-label">Confirmar senha</label>
+          <input type="password" id="pa-senha2" class="fc-form-control" placeholder="Repita a senha" autocomplete="new-password">
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-primary" onclick="criarPrimeiroAdmin()"><i class="bi bi-check-lg me-1"></i>Criar administrador</button>
+        <button class="fc-btn fc-btn-outline" data-bs-dismiss="modal">Cancelar</button>
+        <button class="fc-btn fc-btn-primary" onclick="criarPrimeiroAdmin()"><i class="bi bi-check-lg"></i> Criar</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SISTEMA PRINCIPAL (oculto até login)
-══════════════════════════════════════════ -->
+<!-- ══ APP ════════════════════════════════════ -->
 <div id="app" style="display:none">
 
-  <!-- ── SIDEBAR ── -->
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-      <div class="sb-hex">
-        <svg viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="sbG" x1="0" y1="0" x2="100" y2="110" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#0d3878"/><stop offset="100%" stop-color="#051225"/>
-            </linearGradient>
-            <linearGradient id="sbS" x1="0" y1="0" x2="100" y2="110" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#00eaff"/><stop offset="100%" stop-color="#00c8f8"/>
-            </linearGradient>
-          </defs>
-          <polygon points="50,4 96,28 96,82 50,106 4,82 4,28" fill="url(#sbG)" stroke="url(#sbS)" stroke-width="2.5"/>
-          <polygon points="50,12 88,33 88,78 50,98 12,78 12,33" fill="none" stroke="rgba(0,200,248,0.18)" stroke-width="1"/>
-          <circle cx="50" cy="4" r="2" fill="#00eaff" opacity=".8"/>
-          <circle cx="96" cy="28" r="2" fill="#00eaff" opacity=".8"/>
-          <circle cx="96" cy="82" r="2" fill="#00eaff" opacity=".8"/>
-          <circle cx="50" cy="106" r="2" fill="#00eaff" opacity=".8"/>
-          <circle cx="4" cy="82" r="2" fill="#00eaff" opacity=".8"/>
-          <circle cx="4" cy="28" r="2" fill="#00eaff" opacity=".8"/>
-        </svg>
-        <div class="sb-mono">P<em>J</em></div>
-      </div>
-      <div class="sb-text">
-        <div class="sb-brand"><em>PJ</em> TECNOLOGIA</div>
-        <div class="sb-sub">e Sistemas</div>
+  <!-- TOPBAR -->
+  <div class="fc-topbar">
+    <button class="btn-menu-mobile" onclick="toggleMobileMenu()"><i class="bi bi-list"></i></button>
+    <div class="fc-logo">
+      <div class="fc-logo-icon">P<em>J</em></div>
+      <div>
+        <div class="fc-logo-text">PJ TECNOLOGIA</div>
+        <div class="fc-logo-sub">e Sistemas</div>
       </div>
     </div>
-
-    <nav>
-      <div class="nav-section">Principal</div>
-      <a class="nav-link active" id="nav-dashboard" onclick="navTo('dashboard')">
-        <i class="bi bi-speedometer2"></i> Página inicial
-      </a>
-      <a class="nav-link" id="nav-visitante-novo" onclick="navTo('visitante-novo')">
-        <i class="bi bi-person-plus"></i> Registrar Visitante
-      </a>
-
-      <div class="nav-section" id="nav-gestao-section">Gestão</div>
-      <a class="nav-link" id="nav-usuarios" onclick="navTo('usuarios')">
-        <i class="bi bi-people"></i> Usuários
-      </a>
-      <a class="nav-link" id="nav-unidades" onclick="navTo('unidades')">
-        <i class="bi bi-building"></i> Unidades
-      </a>
-      <a class="nav-link" id="nav-proprietarios" onclick="navTo('proprietarios')">
-        <i class="bi bi-house-door"></i> Proprietários
-      </a>
-      <a class="nav-link" id="nav-porteiros" onclick="navTo('porteiros')">
-        <i class="bi bi-person-badge"></i> Porteiros
-      </a>
-      <a class="nav-link" id="nav-relatorio" onclick="exportarCSV()">
-        <i class="bi bi-file-earmark-spreadsheet"></i> Exportar CSV
-      </a>
-
-      <div class="nav-section">Conta</div>
-      <a class="nav-link" id="nav-perfil" onclick="navTo('perfil')">
-        <i class="bi bi-gear"></i> Meu Perfil
-      </a>
-    </nav>
-
-    <div class="sidebar-user">
-      <div class="user-avatar" id="sb-avatar">?</div>
-      <div>
-        <div class="user-name" id="sb-nome">—</div>
-        <div class="user-role" id="sb-perfil">—</div>
+    <div class="topbar-sep"></div>
+    <div class="topbar-title"><i class="bi bi-shield-lock-fill me-1"></i>Controle de Visitantes</div>
+    <div class="topbar-clock" id="topbar-clock">--:--:--</div>
+    <div class="topbar-sep"></div>
+    <div class="topbar-user">
+      <div class="topbar-avatar" id="sb-avatar">?</div>
+      <div class="topbar-user-info">
+        <div class="topbar-user-name" id="sb-nome">—</div>
+        <div class="topbar-user-role" id="sb-perfil">—</div>
       </div>
-      <button class="btn-sair" title="Sair" onclick="fazerLogout()"><i class="bi bi-box-arrow-right"></i></button>
+    </div>
+    <button class="btn-logout" onclick="fazerLogout()"><i class="bi bi-box-arrow-right"></i> Sair</button>
+  </div>
+
+  <!-- TABS BAR (desktop) -->
+  <div class="fc-tabs" id="fc-tabs">
+    <div class="fc-tab active" id="tab-dashboard" onclick="navTo('dashboard')">
+      <i class="bi bi-grid-1x2-fill"></i> Monitoramento
+    </div>
+    <div class="fc-tab" id="tab-visitante-novo" onclick="navTo('visitante-novo')">
+      <i class="bi bi-person-plus-fill"></i> Registrar Visitante
+    </div>
+    <div class="fc-tab" id="tab-usuarios" onclick="navTo('usuarios')">
+      <i class="bi bi-people-fill"></i> Usuários
+    </div>
+    <div class="fc-tab" id="tab-unidades" onclick="navTo('unidades')">
+      <i class="bi bi-building"></i> Unidades
+    </div>
+    <div class="fc-tab" id="tab-proprietarios" onclick="navTo('proprietarios')">
+      <i class="bi bi-house-door-fill"></i> Proprietários
+    </div>
+    <div class="fc-tab" id="tab-porteiros" onclick="navTo('porteiros')">
+      <i class="bi bi-person-badge-fill"></i> Porteiros
+    </div>
+    <div class="fc-tab" id="tab-relatorio" onclick="exportarCSV()">
+      <i class="bi bi-file-earmark-spreadsheet-fill"></i> Exportar CSV
+    </div>
+    <div class="fc-tab" id="tab-perfil" onclick="navTo('perfil')">
+      <i class="bi bi-gear-fill"></i> Meu Perfil
     </div>
   </div>
 
-  <!-- ── MAIN ── -->
-  <div class="main-content">
-    <div class="topbar">
-      <button class="btn-menu-mobile" onclick="toggleSidebar()" aria-label="Abrir menu">
-        <i class="bi bi-list"></i>
-      </button>
-      <h1 class="page-title" id="page-title">Página inicial</h1>
-      <div class="user-info">
-        <span class="badge" id="topbar-badge" style="background:#1e3a5f">—</span>
-        <span id="topbar-email" style="font-size:.78rem">—</span>
+  <!-- MOBILE DRAWER -->
+  <div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileMenu(false)"></div>
+  <div class="mobile-drawer" id="mobile-drawer">
+    <div class="mobile-nav-section">Principal</div>
+    <div class="mobile-nav-item" onclick="navTo('dashboard');toggleMobileMenu(false)"><i class="bi bi-grid-1x2-fill"></i> Monitoramento</div>
+    <div class="mobile-nav-item" onclick="navTo('visitante-novo');toggleMobileMenu(false)"><i class="bi bi-person-plus-fill"></i> Registrar Visitante</div>
+    <div class="mobile-nav-section" id="mnav-gestao-sec">Gestão</div>
+    <div class="mobile-nav-item" id="mnav-usuarios" onclick="navTo('usuarios');toggleMobileMenu(false)"><i class="bi bi-people-fill"></i> Usuários</div>
+    <div class="mobile-nav-item" id="mnav-unidades" onclick="navTo('unidades');toggleMobileMenu(false)"><i class="bi bi-building"></i> Unidades</div>
+    <div class="mobile-nav-item" id="mnav-proprietarios" onclick="navTo('proprietarios');toggleMobileMenu(false)"><i class="bi bi-house-door-fill"></i> Proprietários</div>
+    <div class="mobile-nav-item" id="mnav-porteiros" onclick="navTo('porteiros');toggleMobileMenu(false)"><i class="bi bi-person-badge-fill"></i> Porteiros</div>
+    <div class="mobile-nav-item" id="mnav-relatorio" onclick="exportarCSV();toggleMobileMenu(false)"><i class="bi bi-file-earmark-spreadsheet-fill"></i> Exportar CSV</div>
+    <div class="mobile-nav-section">Conta</div>
+    <div class="mobile-nav-item" onclick="navTo('perfil');toggleMobileMenu(false)"><i class="bi bi-gear-fill"></i> Meu Perfil</div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="fc-main">
+
+    <!-- ════ DASHBOARD / MONITORAMENTO ════ -->
+    <div class="view active" id="view-dashboard">
+
+      <!-- Stat Cards -->
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-xl-3">
+          <div class="fc-stat" style="border-top-color:#f57c00">
+            <div class="fc-stat-icon" style="background:rgba(245,124,0,.15);color:#ffa726"><i class="bi bi-clock-fill"></i></div>
+            <div>
+              <div class="fc-stat-val" id="cnt-aguardando">0</div>
+              <div class="fc-stat-lbl">Aguardando</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="fc-stat" style="border-top-color:#43a047">
+            <div class="fc-stat-icon" style="background:rgba(67,160,71,.15);color:#66bb6a"><i class="bi bi-person-check-fill"></i></div>
+            <div>
+              <div class="fc-stat-val" id="cnt-emvisita">0</div>
+              <div class="fc-stat-lbl">Em Visita</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="fc-stat" style="border-top-color:#546e7a">
+            <div class="fc-stat-icon" style="background:rgba(84,110,122,.15);color:#90a4ae"><i class="bi bi-check-circle-fill"></i></div>
+            <div>
+              <div class="fc-stat-val" id="cnt-finalizada">0</div>
+              <div class="fc-stat-lbl">Finalizadas</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-xl-3">
+          <div class="fc-stat" style="border-top-color:#1565c0">
+            <div class="fc-stat-icon" style="background:rgba(21,101,192,.15);color:#90caf9"><i class="bi bi-calendar-month-fill"></i></div>
+            <div>
+              <div class="fc-stat-val" id="cnt-mes">0</div>
+              <div class="fc-stat-lbl">No Mês</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Eventos recentes -->
+      <div class="fc-panel">
+        <div class="fc-section-hdr">
+          <i class="bi bi-activity"></i>
+          Eventos Recentes — Registro de Acessos
+          <span style="margin-left:auto">
+            <button class="fc-btn fc-btn-primary fc-btn-sm" onclick="navTo('visitante-novo')">
+              <i class="bi bi-plus"></i> Novo Visitante
+            </button>
+            <button class="fc-btn fc-btn-outline fc-btn-sm ms-1" id="btn-relatorio-wrap" onclick="exportarCSV()" style="display:none">
+              <i class="bi bi-file-earmark-spreadsheet"></i> CSV
+            </button>
+          </span>
+        </div>
+        <div class="fc-table-wrap">
+          <table class="fc-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Chegada</th>
+                <th>Tipo</th>
+                <th>Status</th>
+                <th>Autorizado por</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tb-visitantes">
+              <tr><td colspan="8" style="text-align:center;color:var(--fc-text2);padding:20px">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <div class="content-area">
-
-      <!-- ════ DASHBOARD ════ -->
-      <div class="view active" id="view-dashboard">
-        <div class="d-flex justify-content-end mb-3" id="btn-relatorio-wrap">
-          <button class="btn btn-success btn-sm" onclick="exportarCSV()">
-            <i class="bi bi-file-earmark-spreadsheet me-1"></i>Relatório CSV
-          </button>
-        </div>
-        <div class="row g-3 mb-4">
-          <div class="col-sm-6 col-xl-3">
-            <div class="stat-card" style="border-left-color:#f59e0b">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <div class="stat-label">Aguardando Autorização</div>
-                  <div class="stat-value" style="color:#f59e0b" id="cnt-aguardando">0</div>
-                </div>
-                <i class="bi bi-clock stat-icon" style="color:#f59e0b"></i>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-xl-3">
-            <div class="stat-card" style="border-left-color:#10b981">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <div class="stat-label">Visitantes no Condomínio</div>
-                  <div class="stat-value" style="color:#10b981" id="cnt-emvisita">0</div>
-                </div>
-                <i class="bi bi-person-check stat-icon" style="color:#10b981"></i>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-xl-3">
-            <div class="stat-card" style="border-left-color:#6b7280">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <div class="stat-label">Visitas Finalizadas</div>
-                  <div class="stat-value" style="color:#6b7280" id="cnt-finalizada">0</div>
-                </div>
-                <i class="bi bi-check-circle stat-icon" style="color:#6b7280"></i>
-              </div>
-            </div>
-          </div>
-          <div class="col-sm-6 col-xl-3">
-            <div class="stat-card" style="border-left-color:#3b82f6">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <div class="stat-label">Registrados no Mês</div>
-                  <div class="stat-value" style="color:#3b82f6" id="cnt-mes">0</div>
-                </div>
-                <i class="bi bi-calendar-month stat-icon" style="color:#3b82f6"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center py-3">
-            <span><i class="bi bi-people me-2"></i>Visitantes recentes</span>
-            <button class="btn btn-primary btn-sm" onclick="navTo('visitante-novo')">
-              <i class="bi bi-plus me-1"></i>Novo
-            </button>
-          </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-hover mb-0">
-                <thead>
-                  <tr>
-                    <th>Nome</th><th>CPF</th><th>Chegada</th><th>Tipo</th><th>Status</th>
-                    <th>Autorizado por</th><th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody id="tb-visitantes">
-                  <tr><td colspan="7" class="text-center text-muted py-4">Carregando...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ════ REGISTRAR VISITANTE ════ -->
-      <div class="view" id="view-visitante-novo">
-        <div class="card" style="max-width:700px">
-          <div class="card-header py-3"><i class="bi bi-person-plus me-2"></i>Formulário de Registro</div>
-          <div class="card-body">
+    <!-- ════ REGISTRAR VISITANTE ════ -->
+    <div class="view" id="view-visitante-novo">
+      <div style="max-width:680px">
+        <div class="fc-panel">
+          <div class="fc-section-hdr"><i class="bi bi-person-plus-fill"></i> Formulário de Registro de Visitante</div>
+          <div class="fc-panel-body">
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="form-label">Nome completo *</label>
-                <input type="text" id="v-nome" class="form-control" placeholder="Nome completo do visitante">
+                <label class="fc-form-label">Nome completo *</label>
+                <input type="text" id="v-nome" class="fc-form-control" placeholder="Nome do visitante">
               </div>
               <div class="col-md-6">
-                <label class="form-label">CPF *</label>
-                <input type="text" id="v-cpf" class="form-control" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)">
+                <label class="fc-form-label">CPF *</label>
+                <input type="text" id="v-cpf" class="fc-form-control" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)">
               </div>
               <div class="col-md-6">
-                <label class="form-label">Data de nascimento *</label>
-                <input type="date" id="v-nasc" class="form-control">
+                <label class="fc-form-label">Data de nascimento *</label>
+                <input type="date" id="v-nasc" class="fc-form-control">
               </div>
               <div class="col-md-6">
-                <label class="form-label">Unidade a ser visitada *</label>
-                <select id="v-unidade" class="form-select">
-                  <option value="">Selecione a unidade</option>
+                <label class="fc-form-label">Unidade visitada *</label>
+                <select id="v-unidade" class="fc-form-select">
+                  <option value="">— Selecione —</option>
                 </select>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Tipo *</label>
-                <select id="v-tipo" class="form-select">
+                <label class="fc-form-label">Tipo *</label>
+                <select id="v-tipo" class="fc-form-select">
                   <option value="visita">Visita</option>
                   <option value="entrega">Entrega</option>
                   <option value="prestador">Prestador de Serviço</option>
@@ -476,189 +837,181 @@ footer { text-align:center; color:#aaa; font-size:.75rem; padding:1rem; border-t
                 </select>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Placa do veículo</label>
-                <input type="text" id="v-placa" class="form-control" placeholder="AAA-0000" style="text-transform:uppercase">
+                <label class="fc-form-label">Placa do veículo</label>
+                <input type="text" id="v-placa" class="fc-form-control" placeholder="AAA-0000" style="text-transform:uppercase">
               </div>
               <div class="col-12">
-                <label class="form-label">Observações</label>
-                <textarea id="v-obs" class="form-control" rows="2" placeholder="Observações adicionais..."></textarea>
+                <label class="fc-form-label">Observações</label>
+                <textarea id="v-obs" class="fc-form-control" rows="2" placeholder="Observações adicionais..."></textarea>
               </div>
             </div>
-            <hr class="section-divider">
-            <div class="d-flex justify-content-end gap-2">
-              <button class="btn btn-outline-secondary" onclick="navTo('dashboard')">Cancelar</button>
-              <button class="btn btn-primary" onclick="registrarVisitante()">
-                <i class="bi bi-person-plus me-1"></i>Registrar Visitante
+            <hr class="fc-divider">
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button class="fc-btn fc-btn-outline" onclick="navTo('dashboard')"><i class="bi bi-x"></i> Cancelar</button>
+              <button class="fc-btn fc-btn-primary" onclick="registrarVisitante()">
+                <i class="bi bi-person-plus-fill"></i> Registrar Visitante
               </button>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- ════ DETALHES DO VISITANTE ════ -->
-      <div class="view" id="view-visitante-detalhe">
-        <div class="row g-4">
-          <div class="col-md-6">
-            <div class="card h-100">
-              <div class="card-header py-3"><i class="bi bi-person me-2"></i>Dados do Visitante</div>
-              <div class="card-body" id="detalhe-dados"></div>
-            </div>
+    <!-- ════ DETALHES VISITANTE ════ -->
+    <div class="view" id="view-visitante-detalhe">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="fc-panel h-100">
+            <div class="fc-section-hdr"><i class="bi bi-person-fill"></i> Dados do Visitante</div>
+            <div class="fc-panel-body" id="detalhe-dados"></div>
           </div>
-          <div class="col-md-6">
-            <div class="card h-100">
-              <div class="card-header py-3"><i class="bi bi-clock-history me-2"></i>Status da Visita</div>
-              <div class="card-body" id="detalhe-status"></div>
-            </div>
+        </div>
+        <div class="col-md-6">
+          <div class="fc-panel h-100">
+            <div class="fc-section-hdr"><i class="bi bi-clock-history"></i> Status da Visita</div>
+            <div class="fc-panel-body" id="detalhe-status"></div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- ════ USUÁRIOS ════ -->
-      <div class="view" id="view-usuarios">
-        <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center py-3">
-            <span><i class="bi bi-people me-2"></i>Usuários</span>
-            <button class="btn btn-primary btn-sm" onclick="abrirModalUsuario()">
-              <i class="bi bi-plus me-1"></i>Novo Usuário
-            </button>
-          </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-hover mb-0">
-                <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Status</th><th>Ações</th></tr></thead>
-                <tbody id="tb-usuarios"><tr><td colspan="5" class="text-center text-muted py-4">Carregando...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
+    <!-- ════ USUÁRIOS ════ -->
+    <div class="view" id="view-usuarios">
+      <div class="fc-panel">
+        <div class="fc-section-hdr">
+          <i class="bi bi-people-fill"></i> Usuários do Sistema
+          <span style="margin-left:auto">
+            <button class="fc-btn fc-btn-primary fc-btn-sm" onclick="abrirModalUsuario()"><i class="bi bi-plus"></i> Novo Usuário</button>
+          </span>
+        </div>
+        <div class="fc-table-wrap">
+          <table class="fc-table">
+            <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody id="tb-usuarios"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--fc-text2)">Carregando...</td></tr></tbody>
+          </table>
         </div>
       </div>
+    </div>
 
-      <!-- ════ UNIDADES ════ -->
-      <div class="view" id="view-unidades">
-        <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center py-3">
-            <span><i class="bi bi-building me-2"></i>Unidades</span>
-            <button class="btn btn-primary btn-sm" onclick="abrirModalUnidade()">
-              <i class="bi bi-plus me-1"></i>Nova Unidade
-            </button>
-          </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-hover mb-0">
-                <thead><tr><th>Número</th><th>Bloco</th><th>Andar</th><th>Proprietário</th><th>Ações</th></tr></thead>
-                <tbody id="tb-unidades"><tr><td colspan="5" class="text-center text-muted py-4">Carregando...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
+    <!-- ════ UNIDADES ════ -->
+    <div class="view" id="view-unidades">
+      <div class="fc-panel">
+        <div class="fc-section-hdr">
+          <i class="bi bi-building"></i> Unidades / Apartamentos
+          <span style="margin-left:auto">
+            <button class="fc-btn fc-btn-primary fc-btn-sm" onclick="abrirModalUnidade()"><i class="bi bi-plus"></i> Nova Unidade</button>
+          </span>
+        </div>
+        <div class="fc-table-wrap">
+          <table class="fc-table">
+            <thead><tr><th>Número</th><th>Bloco</th><th>Andar</th><th>Proprietário</th><th>Ações</th></tr></thead>
+            <tbody id="tb-unidades"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--fc-text2)">Carregando...</td></tr></tbody>
+          </table>
         </div>
       </div>
+    </div>
 
-      <!-- ════ PROPRIETÁRIOS ════ -->
-      <div class="view" id="view-proprietarios">
-        <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center py-3">
-            <span><i class="bi bi-house-door me-2"></i>Proprietários</span>
-            <button class="btn btn-primary btn-sm" onclick="abrirModalProprietario()">
-              <i class="bi bi-plus me-1"></i>Novo Proprietário
-            </button>
-          </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-hover mb-0">
-                <thead><tr><th>Nome</th><th>CPF</th><th>E-mail</th><th>Telefone</th><th>Unidade(s)</th><th>Status</th><th>Ações</th></tr></thead>
-                <tbody id="tb-proprietarios"><tr><td colspan="7" class="text-center text-muted py-4">Carregando...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
+    <!-- ════ PROPRIETÁRIOS ════ -->
+    <div class="view" id="view-proprietarios">
+      <div class="fc-panel">
+        <div class="fc-section-hdr">
+          <i class="bi bi-house-door-fill"></i> Proprietários / Moradores
+          <span style="margin-left:auto">
+            <button class="fc-btn fc-btn-primary fc-btn-sm" onclick="abrirModalProprietario()"><i class="bi bi-plus"></i> Novo</button>
+          </span>
+        </div>
+        <div class="fc-table-wrap">
+          <table class="fc-table">
+            <thead><tr><th>Nome</th><th>CPF</th><th>E-mail</th><th>Telefone</th><th>Unidade(s)</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody id="tb-proprietarios"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--fc-text2)">Carregando...</td></tr></tbody>
+          </table>
         </div>
       </div>
+    </div>
 
-      <!-- ════ PORTEIROS ════ -->
-      <div class="view" id="view-porteiros">
-        <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center py-3">
-            <span><i class="bi bi-person-badge me-2"></i>Porteiros</span>
-            <button class="btn btn-primary btn-sm" onclick="abrirModalPorteiro()">
-              <i class="bi bi-plus me-1"></i>Novo Porteiro
-            </button>
-          </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-hover mb-0">
-                <thead><tr><th>Nome</th><th>Matrícula</th><th>Turno</th><th>Status</th><th>Ações</th></tr></thead>
-                <tbody id="tb-porteiros"><tr><td colspan="5" class="text-center text-muted py-4">Carregando...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
+    <!-- ════ PORTEIROS ════ -->
+    <div class="view" id="view-porteiros">
+      <div class="fc-panel">
+        <div class="fc-section-hdr">
+          <i class="bi bi-person-badge-fill"></i> Porteiros / Operadores
+          <span style="margin-left:auto">
+            <button class="fc-btn fc-btn-primary fc-btn-sm" onclick="abrirModalPorteiro()"><i class="bi bi-plus"></i> Novo</button>
+          </span>
+        </div>
+        <div class="fc-table-wrap">
+          <table class="fc-table">
+            <thead><tr><th>Nome</th><th>Matrícula</th><th>Turno</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody id="tb-porteiros"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--fc-text2)">Carregando...</td></tr></tbody>
+          </table>
         </div>
       </div>
+    </div>
 
-      <!-- ════ PERFIL ════ -->
-      <div class="view" id="view-perfil">
-        <div class="card" style="max-width:500px">
-          <div class="card-header py-3"><i class="bi bi-gear me-2"></i>Meu Perfil</div>
-          <div class="card-body">
+    <!-- ════ PERFIL ════ -->
+    <div class="view" id="view-perfil">
+      <div style="max-width:480px">
+        <div class="fc-panel">
+          <div class="fc-section-hdr"><i class="bi bi-gear-fill"></i> Meu Perfil</div>
+          <div class="fc-panel-body">
             <div class="mb-3">
-              <label class="form-label">Nome completo</label>
-              <input type="text" id="perfil-nome" class="form-control">
+              <label class="fc-form-label">Nome completo</label>
+              <input type="text" id="perfil-nome" class="fc-form-control">
             </div>
             <div class="mb-3">
-              <label class="form-label">E-mail</label>
-              <input type="email" id="perfil-email" class="form-control" disabled>
+              <label class="fc-form-label">E-mail</label>
+              <input type="email" id="perfil-email" class="fc-form-control" disabled>
             </div>
             <div class="mb-3">
-              <label class="form-label">Perfil</label>
-              <input type="text" id="perfil-tipo" class="form-control" disabled>
+              <label class="fc-form-label">Perfil</label>
+              <input type="text" id="perfil-tipo" class="fc-form-control" disabled>
             </div>
-            <hr>
-            <h6 class="mb-3">Alterar senha</h6>
+            <hr class="fc-divider">
             <div class="mb-3">
-              <label class="form-label">Nova senha</label>
-              <input type="password" id="perfil-nova-senha" class="form-control" placeholder="Deixe em branco para não alterar">
+              <label class="fc-form-label">Nova senha</label>
+              <input type="password" id="perfil-nova-senha" class="fc-form-control" placeholder="Deixe em branco para não alterar">
             </div>
-            <div class="d-flex justify-content-end">
-              <button class="btn btn-primary" onclick="salvarPerfil()"><i class="bi bi-check me-1"></i>Salvar</button>
+            <div style="display:flex;justify-content:flex-end">
+              <button class="fc-btn fc-btn-primary" onclick="salvarPerfil()"><i class="bi bi-check-lg"></i> Salvar</button>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-    </div><!-- /content-area -->
-    <footer>Controle de Visitantes &copy; 2025 — PJ Tecnologia e Sistemas</footer>
-  </div><!-- /main-content -->
-  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar(false)"></div>
+    <div class="fc-footer">CONTROLE DE VISITANTES &copy; 2025 &mdash; PJ TECNOLOGIA E SISTEMAS</div>
+  </div><!-- /fc-main -->
+
 </div><!-- /app -->
 
-<!-- ══════════════════════════════════
-     MODAIS
-══════════════════════════════════ -->
+<!-- ══ MODAIS ══════════════════════════════════ -->
 
 <!-- Modal Usuário -->
 <div class="modal fade" id="modal-usuario" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title" id="modal-usuario-titulo">Novo Usuário</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title" id="modal-usuario-titulo"><i class="bi bi-person-gear me-1"></i>Usuário</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <input type="hidden" id="mu-id">
-        <div class="mb-3"><label class="form-label">Nome completo *</label><input type="text" id="mu-nome" class="form-control"></div>
-        <div class="mb-3"><label class="form-label">E-mail *</label><input type="email" id="mu-email" class="form-control"></div>
-        <div class="mb-3" id="mu-senha-wrap"><label class="form-label">Senha *</label><input type="password" id="mu-senha" class="form-control"></div>
-        <div class="mb-3">
-          <label class="form-label">Perfil *</label>
-          <select id="mu-perfil" class="form-select">
+        <div class="mb-2"><label class="fc-form-label">Nome completo *</label><input type="text" id="mu-nome" class="fc-form-control"></div>
+        <div class="mb-2"><label class="fc-form-label">E-mail *</label><input type="email" id="mu-email" class="fc-form-control"></div>
+        <div class="mb-2" id="mu-senha-wrap"><label class="fc-form-label">Senha *</label><input type="password" id="mu-senha" class="fc-form-control"></div>
+        <div class="mb-2">
+          <label class="fc-form-label">Perfil *</label>
+          <select id="mu-perfil" class="fc-form-select">
             <option value="porteiro">Porteiro</option>
             <option value="sindico">Síndico</option>
             <option value="administrador">Administrador</option>
           </select>
         </div>
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="mu-ativo" checked>
-          <label class="form-check-label">Ativo</label>
+        <div class="mt-2">
+          <label class="fc-check">
+            <input type="checkbox" id="mu-ativo" checked> Ativo
+          </label>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-primary" onclick="salvarUsuario()">Salvar</button>
+        <button class="fc-btn fc-btn-outline" data-bs-dismiss="modal">Cancelar</button>
+        <button class="fc-btn fc-btn-primary" onclick="salvarUsuario()"><i class="bi bi-check-lg"></i> Salvar</button>
       </div>
     </div>
   </div>
@@ -668,24 +1021,22 @@ footer { text-align:center; color:#aaa; font-size:.75rem; padding:1rem; border-t
 <div class="modal fade" id="modal-unidade" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title" id="modal-unidade-titulo">Nova Unidade</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title" id="modal-unidade-titulo"><i class="bi bi-building me-1"></i>Unidade</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <input type="hidden" id="uu-id">
-        <div class="row g-3">
-          <div class="col-md-6"><label class="form-label">Número *</label><input type="text" id="uu-numero" class="form-control" placeholder="Ex: 101"></div>
-          <div class="col-md-3"><label class="form-label">Bloco</label><input type="text" id="uu-bloco" class="form-control" placeholder="A"></div>
-          <div class="col-md-3"><label class="form-label">Andar</label><input type="number" id="uu-andar" class="form-control" placeholder="1"></div>
+        <div class="row g-2">
+          <div class="col-md-6"><label class="fc-form-label">Número *</label><input type="text" id="uu-numero" class="fc-form-control" placeholder="Ex: 101"></div>
+          <div class="col-md-3"><label class="fc-form-label">Bloco</label><input type="text" id="uu-bloco" class="fc-form-control" placeholder="A"></div>
+          <div class="col-md-3"><label class="fc-form-label">Andar</label><input type="number" id="uu-andar" class="fc-form-control" placeholder="1"></div>
           <div class="col-12">
-            <label class="form-label">Proprietário</label>
-            <select id="uu-proprietario" class="form-select">
-              <option value="">— Sem proprietário —</option>
-            </select>
+            <label class="fc-form-label">Proprietário</label>
+            <select id="uu-proprietario" class="fc-form-select"><option value="">— Sem proprietário —</option></select>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-primary" onclick="salvarUnidade()">Salvar</button>
+        <button class="fc-btn fc-btn-outline" data-bs-dismiss="modal">Cancelar</button>
+        <button class="fc-btn fc-btn-primary" onclick="salvarUnidade()"><i class="bi bi-check-lg"></i> Salvar</button>
       </div>
     </div>
   </div>
@@ -695,27 +1046,26 @@ footer { text-align:center; color:#aaa; font-size:.75rem; padding:1rem; border-t
 <div class="modal fade" id="modal-proprietario" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title" id="modal-prop-titulo">Novo Proprietário</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title" id="modal-prop-titulo"><i class="bi bi-house-door-fill me-1"></i>Proprietário</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <input type="hidden" id="mp-id">
-        <div class="row g-3">
-          <div class="col-12"><label class="form-label">Nome completo *</label><input type="text" id="mp-nome" class="form-control"></div>
-          <div class="col-md-6"><label class="form-label">CPF *</label><input type="text" id="mp-cpf" class="form-control" maxlength="14" oninput="mascaraCPF(this)"></div>
-          <div class="col-md-6"><label class="form-label">Telefone</label><input type="text" id="mp-tel" class="form-control" placeholder="(11) 99999-9999"></div>
-          <div class="col-12"><label class="form-label">E-mail</label><input type="email" id="mp-email" class="form-control"></div>
+        <div class="row g-2">
+          <div class="col-12"><label class="fc-form-label">Nome completo *</label><input type="text" id="mp-nome" class="fc-form-control"></div>
+          <div class="col-md-6"><label class="fc-form-label">CPF *</label><input type="text" id="mp-cpf" class="fc-form-control" maxlength="14" oninput="mascaraCPF(this)"></div>
+          <div class="col-md-6"><label class="fc-form-label">Telefone</label><input type="text" id="mp-tel" class="fc-form-control" placeholder="(11) 99999-9999"></div>
+          <div class="col-12"><label class="fc-form-label">E-mail</label><input type="email" id="mp-email" class="fc-form-control"></div>
           <div class="col-12">
-            <label class="form-label">Unidades vinculadas</label>
-            <div id="mp-unidades-lista" class="border rounded p-2" style="max-height:170px; overflow-y:auto; font-size:.85rem;">
-              <div class="text-muted small py-1">Carregando unidades...</div>
+            <label class="fc-form-label">Unidades vinculadas</label>
+            <div id="mp-unidades-lista" style="background:#1a1d23;border:1px solid var(--fc-border);border-radius:3px;padding:8px;max-height:150px;overflow-y:auto;font-size:12px">
+              <div style="color:var(--fc-text2)">Carregando...</div>
             </div>
-            <div class="form-text">Marque as unidades pertencentes a este proprietário.</div>
           </div>
-          <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="mp-ativo" checked><label class="form-check-label">Ativo</label></div></div>
+          <div class="col-12"><label class="fc-check"><input type="checkbox" id="mp-ativo" checked> Ativo</label></div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-primary" onclick="salvarProprietario()">Salvar</button>
+        <button class="fc-btn fc-btn-outline" data-bs-dismiss="modal">Cancelar</button>
+        <button class="fc-btn fc-btn-primary" onclick="salvarProprietario()"><i class="bi bi-check-lg"></i> Salvar</button>
       </div>
     </div>
   </div>
@@ -725,30 +1075,28 @@ footer { text-align:center; color:#aaa; font-size:.75rem; padding:1rem; border-t
 <div class="modal fade" id="modal-porteiro" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title" id="modal-port-titulo">Novo Porteiro</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title" id="modal-port-titulo"><i class="bi bi-person-badge-fill me-1"></i>Porteiro</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <input type="hidden" id="pt-id">
-        <div class="row g-3">
+        <div class="row g-2">
           <div class="col-12">
-            <label class="form-label">Usuário *</label>
-            <select id="pt-usuario" class="form-select"><option value="">Selecione...</option></select>
+            <label class="fc-form-label">Usuário *</label>
+            <select id="pt-usuario" class="fc-form-select"><option value="">Selecione...</option></select>
           </div>
-          <div class="col-md-6"><label class="form-label">Matrícula *</label><input type="text" id="pt-matricula" class="form-control"></div>
-          <div class="col-md-6"><label class="form-label">Turno</label><input type="text" id="pt-turno" class="form-control" placeholder="Ex: Diurno"></div>
-          <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="pt-ativo" checked><label class="form-check-label">Ativo</label></div></div>
+          <div class="col-md-6"><label class="fc-form-label">Matrícula *</label><input type="text" id="pt-matricula" class="fc-form-control"></div>
+          <div class="col-md-6"><label class="fc-form-label">Turno</label><input type="text" id="pt-turno" class="fc-form-control" placeholder="Ex: Diurno"></div>
+          <div class="col-12"><label class="fc-check"><input type="checkbox" id="pt-ativo" checked> Ativo</label></div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-primary" onclick="salvarPorteiro()">Salvar</button>
+        <button class="fc-btn fc-btn-outline" data-bs-dismiss="modal">Cancelar</button>
+        <button class="fc-btn fc-btn-primary" onclick="salvarPorteiro()"><i class="bi bi-check-lg"></i> Salvar</button>
       </div>
     </div>
   </div>
 </div>
 
-
-
-<!-- ══ Scripts ══ -->
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -757,23 +1105,29 @@ import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPas
 import { getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc, query, orderBy, serverTimestamp, where, Timestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ── Estado global ──
 let app, auth, db;
-let usuarioAtual = null; // doc do Firestore
+let usuarioAtual = null;
 let visitanteAbertoId = null;
 let cacheUnidades = [];
 let cacheProprietarios = [];
 let cacheUsuarios = [];
 let cachePorteiros = [];
 
-// ── Helpers ──
 const $ = id => document.getElementById(id);
 const modal = id => bootstrap.Modal.getOrCreateInstance(document.getElementById(id));
+
+// Clock
+function updateClock(){
+  const now = new Date();
+  $('topbar-clock').textContent = now.toLocaleTimeString('pt-BR');
+}
+setInterval(updateClock, 1000);
+updateClock();
 
 function toast(msg, tipo='success'){
   const el = document.createElement('div');
   el.className = `toast-msg ${tipo}`;
-  el.textContent = msg;
+  el.innerHTML = `<i class="bi bi-${tipo==='error'?'exclamation-triangle':'check-circle'} me-1"></i>${msg}`;
   $('toast-container').appendChild(el);
   setTimeout(()=>el.remove(), 3500);
 }
@@ -792,42 +1146,45 @@ function mascaraCPF(el){
 }
 window.mascaraCPF=mascaraCPF;
 
-// ── Sidebar mobile ──
-window.toggleSidebar = function(force){
-  const sb = $('sidebar');
-  const ov = $('sidebar-overlay');
-  const abrir = (force !== undefined) ? force : !sb.classList.contains('open');
-  sb.classList.toggle('open', abrir);
-  ov.classList.toggle('show', abrir);
+// Mobile menu
+window.toggleMobileMenu = function(force){
+  const drawer = $('mobile-drawer');
+  const overlay = $('mobile-overlay');
+  const abrir = (force !== undefined) ? force : !drawer.classList.contains('open');
+  drawer.classList.toggle('open', abrir);
+  overlay.classList.toggle('show', abrir);
 };
 
 const TIPO_LABEL = { visita:'Visita', entrega:'Entrega', prestador:'Prestador de Serviço', nao_identificado:'Não identificado' };
-const STATUS_LABEL = { aguardando:'Aguardando autorização', em_visita:'Em visita', finalizada:'Visita finalizada', negado:'Acesso negado' };
+const STATUS_LABEL = { aguardando:'Aguardando', em_visita:'Em Visita', finalizada:'Finalizada', negado:'Negado' };
 const PERFIL_LABEL = { porteiro:'Porteiro', sindico:'Síndico', administrador:'Administrador' };
 
 function statusBadge(s){
-  const map={ aguardando:'status-aguardando', em_visita:'status-em_visita', finalizada:'status-finalizada', negado:'status-negado' };
-  return `<span class="badge ${map[s]||'bg-secondary'}" style="font-size:.75rem">${STATUS_LABEL[s]||s}</span>`;
+  const map={ aguardando:'aguardando', em_visita:'emvisita', finalizada:'finalizada', negado:'negado' };
+  const icons={ aguardando:'clock-fill', em_visita:'person-check-fill', finalizada:'check-circle-fill', negado:'x-circle-fill' };
+  return `<span class="fc-badge fc-badge-${map[s]||'finalizada'}"><i class="bi bi-${icons[s]||'circle'}"></i>${STATUS_LABEL[s]||s}</span>`;
 }
 function perfilBadge(p){
-  const map={ administrador:'#7c3aed', sindico:'#0d3878', porteiro:'#374151' };
-  return `<span class="badge" style="background:${map[p]||'#6b7280'}">${PERFIL_LABEL[p]||p}</span>`;
+  const map={ administrador:'admin', sindico:'sindico', porteiro:'porteiro' };
+  return `<span class="fc-badge fc-badge-${map[p]||'porteiro'}">${PERFIL_LABEL[p]||p}</span>`;
+}
+function tipoBadge(t){
+  return `<span class="fc-badge fc-badge-tipo">${TIPO_LABEL[t]||t||'—'}</span>`;
+}
+function ativoBadge(v){
+  return v ? `<span class="fc-badge fc-badge-ativo">Ativo</span>` : `<span class="fc-badge fc-badge-inativo">Inativo</span>`;
 }
 
 function podeGerenciar(){ return usuarioAtual && ['sindico','administrador'].includes(usuarioAtual.perfil); }
 
-
-
-// ── Init Firebase ──
+// Firebase
 let criandoAdminAgora = false;
-
 async function initFirebase(cfg){
   app = initializeApp(cfg);
   auth = getAuth(app);
   db = getFirestore(app);
-
   onAuthStateChanged(auth, async user => {
-    if(criandoAdminAgora) return; // evita corrida durante a criação do 1º administrador
+    if(criandoAdminAgora) return;
     if(user){
       const snap = await getDoc(doc(db,'usuarios',user.uid));
       if(snap.exists()){
@@ -845,133 +1202,83 @@ async function initFirebase(cfg){
   });
 }
 
-// ── Login / Logout ──
 window.fazerLogin = async function(){
   const email = $('login-email').value.trim();
   const senha = $('login-senha').value;
   $('login-error').style.display='none';
   spin(true);
-  try{
-    await signInWithEmailAndPassword(auth, email, senha);
-  } catch {
-    $('login-error').style.display='block';
-  } finally { spin(false); }
+  try{ await signInWithEmailAndPassword(auth, email, senha); }
+  catch { $('login-error').style.display='block'; }
+  finally { spin(false); }
 };
 
-window.fazerLogout = async function(){
-  await signOut(auth);
-};
+window.fazerLogout = async function(){ await signOut(auth); };
 
-// ── Primeiro acesso: criar administrador ──
 window.abrirPrimeiroAcesso = function(){
   $('pa-error').style.display = 'none';
-  $('pa-nome').value = '';
-  $('pa-email').value = '';
-  $('pa-senha').value = '';
-  $('pa-senha2').value = '';
+  ['pa-nome','pa-email','pa-senha','pa-senha2'].forEach(id=>$(id).value='');
   modal('modal-primeiro-acesso').show();
 };
 
 window.criarPrimeiroAdmin = async function(){
-  const nome   = $('pa-nome').value.trim();
-  const email  = $('pa-email').value.trim();
-  const senha  = $('pa-senha').value;
-  const senha2 = $('pa-senha2').value;
-  const erro = $('pa-error');
-  erro.style.display = 'none';
-
-  if(!nome || !email || !senha || !senha2){
-    erro.textContent = 'Preencha todos os campos.';
-    erro.style.display = 'block';
-    return;
-  }
-  if(senha.length < 6){
-    erro.textContent = 'A senha deve ter ao menos 6 caracteres.';
-    erro.style.display = 'block';
-    return;
-  }
-  if(senha !== senha2){
-    erro.textContent = 'As senhas não coincidem.';
-    erro.style.display = 'block';
-    return;
-  }
-
-  spin(true);
-  criandoAdminAgora = true;
+  const nome=$('pa-nome').value.trim(), email=$('pa-email').value.trim();
+  const senha=$('pa-senha').value, senha2=$('pa-senha2').value;
+  const erro=$('pa-error');
+  erro.style.display='none';
+  if(!nome||!email||!senha||!senha2){ erro.textContent='Preencha todos os campos.'; erro.style.display='block'; return; }
+  if(senha.length<6){ erro.textContent='Senha mínima de 6 caracteres.'; erro.style.display='block'; return; }
+  if(senha!==senha2){ erro.textContent='Senhas não coincidem.'; erro.style.display='block'; return; }
+  spin(true); criandoAdminAgora=true;
   try{
     const cred = await createUserWithEmailAndPassword(auth, email, senha);
-    await setDoc(doc(db,'usuarios',cred.user.uid),{
-      nome, email, perfil:'administrador', ativo:true, criadoEm: serverTimestamp()
-    });
+    await setDoc(doc(db,'usuarios',cred.user.uid),{ nome, email, perfil:'administrador', ativo:true, criadoEm:serverTimestamp() });
     usuarioAtual = { id:cred.user.uid, nome, email, perfil:'administrador', ativo:true };
     modal('modal-primeiro-acesso').hide();
-    toast('Administrador criado com sucesso! Bem-vindo.');
+    toast('Administrador criado!');
     abrirApp();
   }catch(e){
-    if(e.code === 'auth/email-already-in-use'){
-      erro.textContent = 'Este e-mail já está cadastrado. Faça login normalmente.';
-    } else if(e.code === 'auth/invalid-email'){
-      erro.textContent = 'E-mail inválido.';
-    } else {
-      erro.textContent = 'Erro ao criar administrador: ' + e.message;
-    }
-    erro.style.display = 'block';
-  } finally {
-    spin(false);
-    criandoAdminAgora = false;
-  }
+    if(e.code==='auth/email-already-in-use') erro.textContent='E-mail já cadastrado.';
+    else erro.textContent='Erro: '+e.message;
+    erro.style.display='block';
+  } finally { spin(false); criandoAdminAgora=false; }
 };
 
-// Tecla Enter no login
 $('login-senha').addEventListener('keydown', e=>{ if(e.key==='Enter') window.fazerLogin(); });
 
-// ── Abrir App ──
 function abrirApp(){
   $('login-screen').style.display='none';
   $('app').style.display='block';
-
-  // Atualizar UI usuário
   const iniciais = (usuarioAtual.nome||'?').split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
   $('sb-avatar').textContent = iniciais;
   $('sb-nome').textContent = usuarioAtual.nome||'—';
   $('sb-perfil').textContent = PERFIL_LABEL[usuarioAtual.perfil]||'—';
-  $('topbar-badge').textContent = PERFIL_LABEL[usuarioAtual.perfil]||'—';
-  $('topbar-email').textContent = usuarioAtual.email||'—';
 
-  // Mostrar/ocultar gestão
   const pode = podeGerenciar();
-  ['nav-gestao-section','nav-usuarios','nav-unidades','nav-proprietarios','nav-porteiros','nav-relatorio','btn-relatorio-wrap']
+  ['tab-usuarios','tab-unidades','tab-proprietarios','tab-porteiros','tab-relatorio',
+   'mnav-usuarios','mnav-unidades','mnav-proprietarios','mnav-porteiros','mnav-relatorio',
+   'mnav-gestao-sec','btn-relatorio-wrap']
     .forEach(id=>{ const el=$(id); if(el) el.style.display=pode?'':'none'; });
 
   navTo('dashboard');
 }
 
-// ── Navegação ──
 window.navTo = function(view){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  document.querySelectorAll('.fc-tab').forEach(t=>t.classList.remove('active'));
   $(`view-${view}`)?.classList.add('active');
-  $(`nav-${view}`)?.classList.add('active');
-  if(window.innerWidth <= 768) toggleSidebar(false);
+  $(`tab-${view}`)?.classList.add('active');
 
-  const titulos = {
-    dashboard:'Página inicial','visitante-novo':'Registrar Visitante',
-    'visitante-detalhe':'Informações do Visitante',
-    usuarios:'Usuários', unidades:'Unidades',
-    proprietarios:'Proprietários', porteiros:'Porteiros', perfil:'Meu Perfil'
-  };
-  $('page-title').textContent = titulos[view]||'';
-
-  if(view==='dashboard') carregarDashboard();
-  if(view==='visitante-novo') preencherSelectUnidades();
-  if(view==='usuarios') carregarUsuarios();
-  if(view==='unidades') carregarUnidades();
-  if(view==='proprietarios') carregarProprietarios();
-  if(view==='porteiros') carregarPorteiros();
-  if(view==='perfil') preencherPerfil();
+  if(view==='dashboard')           carregarDashboard();
+  if(view==='visitante-novo')      preencherSelectUnidades();
+  if(view==='usuarios')            carregarUsuarios();
+  if(view==='unidades')            carregarUnidades();
+  if(view==='proprietarios')       carregarProprietarios();
+  if(view==='porteiros')           carregarPorteiros();
+  if(view==='perfil')              preencherPerfil();
 };
 
-// ── Dashboard ──
+// Dashboard
+let rowCounter = 0;
 async function carregarDashboard(){
   spin(true);
   try{
@@ -979,7 +1286,6 @@ async function carregarDashboard(){
     const todos = snap.docs.map(d=>({id:d.id,...d.data()}));
     const agora = new Date();
     const primMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
-
     $('cnt-aguardando').textContent = todos.filter(v=>v.status==='aguardando').length;
     $('cnt-emvisita').textContent   = todos.filter(v=>v.status==='em_visita').length;
     $('cnt-finalizada').textContent = todos.filter(v=>v.status==='finalizada').length;
@@ -987,60 +1293,54 @@ async function carregarDashboard(){
       const dt = v.horario_chegada?.toDate?.()|| new Date(v.horario_chegada||0);
       return dt >= primMes;
     }).length;
-
-    const recentes = todos.slice(0,50);
-    $('tb-visitantes').innerHTML = recentes.length ? recentes.map(v=>`
+    rowCounter=0;
+    $('tb-visitantes').innerHTML = todos.slice(0,50).length ? todos.slice(0,50).map((v,i)=>`
       <tr>
-        <td>${v.nome_completo||'—'}</td>
-        <td>${v.cpf||'—'}</td>
-        <td>${fmtDt(v.horario_chegada)}</td>
-        <td><span class="badge bg-secondary">${TIPO_LABEL[v.tipo]||v.tipo||'—'}</span></td>
+        <td style="color:var(--fc-text2);font-size:10px">${i+1}</td>
+        <td style="font-weight:600;color:var(--fc-white)">${v.nome_completo||'—'}</td>
+        <td style="font-family:monospace;font-size:11px">${v.cpf||'—'}</td>
+        <td style="font-size:11px;color:var(--fc-text2)">${fmtDt(v.horario_chegada)}</td>
+        <td>${tipoBadge(v.tipo)}</td>
         <td>${statusBadge(v.status)}</td>
-        <td>${v.autorizado_por_nome||'—'}</td>
-        <td><button class="btn btn-sm btn-outline-primary" onclick="verVisitante('${v.id}')">Ver</button></td>
+        <td style="font-size:11px">${v.autorizado_por_nome||'—'}</td>
+        <td><button class="fc-btn fc-btn-outline fc-btn-sm fc-btn-icon" onclick="verVisitante('${v.id}')"><i class="bi bi-eye"></i></button></td>
       </tr>`).join('')
-    : '<tr><td colspan="7" class="text-center text-muted py-4">Nenhum visitante registrado.</td></tr>';
+    : '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--fc-text2)"><i class="bi bi-inbox me-2"></i>Nenhum visitante registrado.</td></tr>';
   } finally { spin(false); }
 }
 
-// ── Registrar Visitante ──
+// Registrar Visitante
 async function preencherSelectUnidades(){
   const snap = await getDocs(query(collection(db,'unidades'),orderBy('numero')));
   cacheUnidades = snap.docs.map(d=>({id:d.id,...d.data()}));
-  $('v-unidade').innerHTML = '<option value="">Selecione a unidade</option>'
+  $('v-unidade').innerHTML = '<option value="">— Selecione a unidade —</option>'
     + cacheUnidades.map(u=>`<option value="${u.id}">${u.bloco?`Bloco ${u.bloco} — `:''}Unidade ${u.numero}</option>`).join('');
 }
 
 window.registrarVisitante = async function(){
-  const nome = $('v-nome').value.trim();
-  const cpf  = $('v-cpf').value.trim();
-  const nasc = $('v-nasc').value;
-  const unidadeId = $('v-unidade').value;
+  const nome=$('v-nome').value.trim(), cpf=$('v-cpf').value.trim();
+  const nasc=$('v-nasc').value, unidadeId=$('v-unidade').value;
   if(!nome||!cpf||!nasc||!unidadeId){ toast('Preencha os campos obrigatórios.','error'); return; }
   spin(true);
   try{
     const unidade = cacheUnidades.find(u=>u.id===unidadeId);
     const ref = await addDoc(collection(db,'visitantes'),{
-      nome_completo: nome, cpf, data_nascimento: nasc,
-      unidade_id: unidadeId,
-      unidade_label: unidade ? `${unidade.bloco?`Bloco ${unidade.bloco} — `:''}Unidade ${unidade.numero}` : '',
-      tipo: $('v-tipo').value,
-      placa_veiculo: $('v-placa').value.toUpperCase().trim()||null,
-      observacoes: $('v-obs').value.trim()||null,
-      status: 'aguardando',
-      horario_chegada: serverTimestamp(),
-      horario_autorizacao: null, horario_saida: null,
-      autorizado_por: null, autorizado_por_nome: null,
-      registrado_por: usuarioAtual.id,
-      registrado_por_nome: usuarioAtual.nome,
+      nome_completo:nome, cpf, data_nascimento:nasc,
+      unidade_id:unidadeId,
+      unidade_label: unidade?`${unidade.bloco?`Bloco ${unidade.bloco} — `:''}Unidade ${unidade.numero}`:'',
+      tipo:$('v-tipo').value,
+      placa_veiculo:$('v-placa').value.toUpperCase().trim()||null,
+      observacoes:$('v-obs').value.trim()||null,
+      status:'aguardando', horario_chegada:serverTimestamp(),
+      horario_autorizacao:null, horario_saida:null,
+      autorizado_por:null, autorizado_por_nome:null,
+      registrado_por:usuarioAtual.id, registrado_por_nome:usuarioAtual.nome,
     });
-    // Log
     await addDoc(collection(db,'logs'),{
-      usuario_id: usuarioAtual.id, usuario_nome: usuarioAtual.nome,
-      acao:'CADASTRO_VISITANTE', descricao:`Visitante ${nome} registrado.`, data_hora: serverTimestamp()
+      usuario_id:usuarioAtual.id, usuario_nome:usuarioAtual.nome,
+      acao:'CADASTRO_VISITANTE', descricao:`Visitante ${nome} registrado.`, data_hora:serverTimestamp()
     });
     toast('Visitante registrado com sucesso!');
-    // Limpar form
     ['v-nome','v-cpf','v-nasc','v-placa','v-obs'].forEach(id=>$(id).value='');
     $('v-tipo').value='visita'; $('v-unidade').value='';
     visitanteAbertoId = ref.id;
@@ -1049,7 +1349,7 @@ window.registrarVisitante = async function(){
   } finally { spin(false); }
 };
 
-// ── Detalhes Visitante ──
+// Detalhes
 window.verVisitante = async function(id){
   visitanteAbertoId = id;
   navTo('visitante-detalhe');
@@ -1064,45 +1364,43 @@ async function carregarDetalheVisitante(id){
     const v = {id:snap.id,...snap.data()};
 
     $('detalhe-dados').innerHTML = `
-      <div class="detail-row"><span class="detail-label">Nome:</span><span class="detail-val">${v.nome_completo}</span></div>
-      <div class="detail-row"><span class="detail-label">CPF:</span><span class="detail-val">${v.cpf}</span></div>
-      <div class="detail-row"><span class="detail-label">Nascimento:</span><span class="detail-val">${fmtData(v.data_nascimento)}</span></div>
-      <div class="detail-row"><span class="detail-label">Unidade:</span><span class="detail-val">${v.unidade_label||'—'}</span></div>
-      <div class="detail-row"><span class="detail-label">Tipo:</span><span class="detail-val"><span class="badge bg-secondary">${TIPO_LABEL[v.tipo]||v.tipo}</span></span></div>
-      <div class="detail-row"><span class="detail-label">Placa:</span><span class="detail-val">${v.placa_veiculo||'—'}</span></div>
-      <div class="detail-row"><span class="detail-label">Observações:</span><span class="detail-val">${v.observacoes||'—'}</span></div>
-      <div class="detail-row"><span class="detail-label">Registrado por:</span><span class="detail-val">${v.registrado_por_nome||'—'}</span></div>`;
+      <div class="fc-detail-row"><span class="fc-detail-lbl">Nome</span><span class="fc-detail-val" style="font-weight:700;color:var(--fc-white)">${v.nome_completo}</span></div>
+      <div class="fc-detail-row"><span class="fc-detail-lbl">CPF</span><span class="fc-detail-val" style="font-family:monospace">${v.cpf}</span></div>
+      <div class="fc-detail-row"><span class="fc-detail-lbl">Nascimento</span><span class="fc-detail-val">${fmtData(v.data_nascimento)}</span></div>
+      <div class="fc-detail-row"><span class="fc-detail-lbl">Unidade</span><span class="fc-detail-val">${v.unidade_label||'—'}</span></div>
+      <div class="fc-detail-row"><span class="fc-detail-lbl">Tipo</span><span class="fc-detail-val">${tipoBadge(v.tipo)}</span></div>
+      <div class="fc-detail-row"><span class="fc-detail-lbl">Placa</span><span class="fc-detail-val" style="font-family:monospace">${v.placa_veiculo||'—'}</span></div>
+      <div class="fc-detail-row"><span class="fc-detail-lbl">Observações</span><span class="fc-detail-val">${v.observacoes||'—'}</span></div>
+      <div class="fc-detail-row"><span class="fc-detail-lbl">Registrado por</span><span class="fc-detail-val">${v.registrado_por_nome||'—'}</span></div>`;
 
+    const dotColors = { aguardando:'#ffa726', em_visita:'#66bb6a', finalizada:'#9ca3af', negado:'#ef5350' };
     const botoes = () => {
       let b = '';
-      if(v.status==='aguardando') b+=`<button class="btn btn-success" onclick="autorizarVisitante('${v.id}')"><i class="bi bi-check-circle me-1"></i>Autorizar entrada</button>`;
-      if(v.status==='aguardando') b+=`<button class="btn btn-danger ms-2" onclick="negarVisitante('${v.id}')"><i class="bi bi-x-circle me-1"></i>Negar acesso</button>`;
-      if(v.status==='em_visita')  b+=`<button class="btn btn-warning" onclick="finalizarVisita('${v.id}')"><i class="bi bi-box-arrow-right me-1"></i>Finalizar visita</button>`;
-      b+=`<button class="btn btn-outline-secondary ms-2" onclick="navTo('dashboard')"><i class="bi bi-arrow-left me-1"></i>Voltar</button>`;
+      if(v.status==='aguardando') b+=`<button class="fc-btn fc-btn-success" onclick="autorizarVisitante('${v.id}')"><i class="bi bi-check-circle-fill"></i> Autorizar Entrada</button>`;
+      if(v.status==='aguardando') b+=`<button class="fc-btn fc-btn-danger" onclick="negarVisitante('${v.id}')"><i class="bi bi-x-circle-fill"></i> Negar Acesso</button>`;
+      if(v.status==='em_visita')  b+=`<button class="fc-btn fc-btn-warning" onclick="finalizarVisita('${v.id}')"><i class="bi bi-box-arrow-right"></i> Finalizar Visita</button>`;
+      b+=`<button class="fc-btn fc-btn-outline" onclick="navTo('dashboard')"><i class="bi bi-arrow-left"></i> Voltar</button>`;
       return b;
     };
 
     $('detalhe-status').innerHTML = `
-      <div class="text-center mb-3">${statusBadge(v.status)}</div>
-      <div class="detail-row"><span class="detail-label">Chegada:</span><span class="detail-val">${fmtDt(v.horario_chegada)}</span></div>
-      <div class="detail-row"><span class="detail-label">Autorização:</span><span class="detail-val">${v.horario_autorizacao?fmtDt(v.horario_autorizacao):'Aguardando...'}</span></div>
-      <div class="detail-row"><span class="detail-label">Saída:</span><span class="detail-val">${v.horario_saida?fmtDt(v.horario_saida):'—'}</span></div>
-      <div class="detail-row"><span class="detail-label">Autorizado por:</span><span class="detail-val">${v.autorizado_por_nome||'—'}</span></div>
-      <div class="mt-4 d-flex flex-wrap gap-2">${botoes()}</div>`;
+      <div class="fc-status-bar" style="border-left-color:${dotColors[v.status]||'#9ca3af'}">
+        <div class="fc-status-dot" style="background:${dotColors[v.status]||'#9ca3af'}"></div>
+        ${statusBadge(v.status)}
+      </div>
+      <div class="fc-detail-row"><span class="fc-detail-lbl">Chegada</span><span class="fc-detail-val">${fmtDt(v.horario_chegada)}</span></div>
+      <div class="fc-detail-row"><span class="fc-detail-lbl">Autorização</span><span class="fc-detail-val">${v.horario_autorizacao?fmtDt(v.horario_autorizacao):'<span style="color:var(--fc-text2)">Aguardando...</span>'}</span></div>
+      <div class="fc-detail-row"><span class="fc-detail-lbl">Saída</span><span class="fc-detail-val">${v.horario_saida?fmtDt(v.horario_saida):'—'}</span></div>
+      <div class="fc-detail-row"><span class="fc-detail-lbl">Autorizado por</span><span class="fc-detail-val">${v.autorizado_por_nome||'—'}</span></div>
+      <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:6px">${botoes()}</div>`;
   } finally { spin(false); }
 }
 
 window.autorizarVisitante = async function(id){
   spin(true);
   try{
-    await updateDoc(doc(db,'visitantes',id),{
-      status:'em_visita', horario_autorizacao: serverTimestamp(),
-      autorizado_por: usuarioAtual.id, autorizado_por_nome: usuarioAtual.nome
-    });
-    await addDoc(collection(db,'logs'),{
-      usuario_id:usuarioAtual.id,usuario_nome:usuarioAtual.nome,
-      acao:'AUTORIZACAO_VISITA',descricao:`Visita autorizada por ${usuarioAtual.nome}.`,data_hora:serverTimestamp()
-    });
+    await updateDoc(doc(db,'visitantes',id),{ status:'em_visita', horario_autorizacao:serverTimestamp(), autorizado_por:usuarioAtual.id, autorizado_por_nome:usuarioAtual.nome });
+    await addDoc(collection(db,'logs'),{ usuario_id:usuarioAtual.id, usuario_nome:usuarioAtual.nome, acao:'AUTORIZACAO_VISITA', descricao:`Visita autorizada.`, data_hora:serverTimestamp() });
     toast('Visita autorizada!');
     await carregarDetalheVisitante(id);
   } finally { spin(false); }
@@ -1111,11 +1409,8 @@ window.autorizarVisitante = async function(id){
 window.finalizarVisita = async function(id){
   spin(true);
   try{
-    await updateDoc(doc(db,'visitantes',id),{ status:'finalizada', horario_saida: serverTimestamp() });
-    await addDoc(collection(db,'logs'),{
-      usuario_id:usuarioAtual.id,usuario_nome:usuarioAtual.nome,
-      acao:'FINALIZACAO_VISITA',descricao:`Visita finalizada por ${usuarioAtual.nome}.`,data_hora:serverTimestamp()
-    });
+    await updateDoc(doc(db,'visitantes',id),{ status:'finalizada', horario_saida:serverTimestamp() });
+    await addDoc(collection(db,'logs'),{ usuario_id:usuarioAtual.id, usuario_nome:usuarioAtual.nome, acao:'FINALIZACAO_VISITA', descricao:`Visita finalizada.`, data_hora:serverTimestamp() });
     toast('Visita finalizada!');
     await carregarDetalheVisitante(id);
   } finally { spin(false); }
@@ -1131,7 +1426,7 @@ window.negarVisitante = async function(id){
   } finally { spin(false); }
 };
 
-// ── Usuários ──
+// Usuários
 async function carregarUsuarios(){
   spin(true);
   try{
@@ -1139,59 +1434,53 @@ async function carregarUsuarios(){
     cacheUsuarios = snap.docs.map(d=>({id:d.id,...d.data()}));
     $('tb-usuarios').innerHTML = cacheUsuarios.length ? cacheUsuarios.map(u=>`
       <tr>
-        <td>${u.nome||'—'}</td>
-        <td>${u.email||'—'}</td>
+        <td style="font-weight:600;color:var(--fc-white)">${u.nome||'—'}</td>
+        <td style="font-size:11px">${u.email||'—'}</td>
         <td>${perfilBadge(u.perfil)}</td>
-        <td><span class="badge ${u.ativo?'bg-success':'bg-danger'}">${u.ativo?'Ativo':'Inativo'}</span></td>
-        <td><button class="btn btn-sm btn-outline-primary" onclick="editarUsuario('${u.id}')"><i class="bi bi-pencil"></i></button></td>
+        <td>${ativoBadge(u.ativo)}</td>
+        <td><button class="fc-btn fc-btn-outline fc-btn-sm fc-btn-icon" onclick="editarUsuario('${u.id}')"><i class="bi bi-pencil"></i></button></td>
       </tr>`).join('')
-    : '<tr><td colspan="5" class="text-center text-muted py-4">Nenhum usuário encontrado.</td></tr>';
+    : '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--fc-text2)">Nenhum usuário.</td></tr>';
   } finally { spin(false); }
 }
 
 window.abrirModalUsuario = function(){
-  $('modal-usuario-titulo').textContent = 'Novo Usuário';
+  $('modal-usuario-titulo').innerHTML='<i class="bi bi-person-plus-fill me-1"></i>Novo Usuário';
   ['mu-id','mu-nome','mu-email','mu-senha'].forEach(id=>$(id).value='');
   $('mu-perfil').value='porteiro'; $('mu-ativo').checked=true;
   $('mu-senha-wrap').style.display='block';
   modal('modal-usuario').show();
 };
 window.editarUsuario = function(id){
-  const u = cacheUsuarios.find(x=>x.id===id);
-  if(!u) return;
-  $('modal-usuario-titulo').textContent = 'Editar Usuário';
+  const u=cacheUsuarios.find(x=>x.id===id); if(!u) return;
+  $('modal-usuario-titulo').innerHTML='<i class="bi bi-pencil me-1"></i>Editar Usuário';
   $('mu-id').value=id; $('mu-nome').value=u.nome||''; $('mu-email').value=u.email||'';
   $('mu-senha').value=''; $('mu-perfil').value=u.perfil||'porteiro'; $('mu-ativo').checked=!!u.ativo;
   $('mu-senha-wrap').style.display='none';
   modal('modal-usuario').show();
 };
 window.salvarUsuario = async function(){
-  const id=$('mu-id').value; const nome=$('mu-nome').value.trim();
-  const email=$('mu-email').value.trim(); const senha=$('mu-senha').value;
-  const perfil=$('mu-perfil').value; const ativo=$('mu-ativo').checked;
+  const id=$('mu-id').value, nome=$('mu-nome').value.trim(), email=$('mu-email').value.trim();
+  const senha=$('mu-senha').value, perfil=$('mu-perfil').value, ativo=$('mu-ativo').checked;
   if(!nome||!email){ toast('Preencha nome e e-mail.','error'); return; }
   spin(true);
   try{
-    if(id){
-      await updateDoc(doc(db,'usuarios',id),{nome,perfil,ativo});
-      toast('Usuário atualizado!');
-    } else {
+    if(id){ await updateDoc(doc(db,'usuarios',id),{nome,perfil,ativo}); toast('Usuário atualizado!'); }
+    else {
       if(!senha){ toast('Informe a senha.','error'); spin(false); return; }
       const cred = await createUserWithEmailAndPassword(auth,email,senha);
       await setDoc(doc(db,'usuarios',cred.user.uid),{nome,email,perfil,ativo,criadoEm:serverTimestamp()});
       toast('Usuário criado!');
     }
-    modal('modal-usuario').hide();
-    carregarUsuarios();
-  } catch(e){ toast(e.message,'error'); }
-  finally{ spin(false); }
+    modal('modal-usuario').hide(); carregarUsuarios();
+  }catch(e){ toast(e.message,'error'); } finally{ spin(false); }
 };
 
-// ── Unidades ──
+// Unidades
 async function carregarUnidades(){
   spin(true);
   try{
-    const [uSnap, pSnap] = await Promise.all([
+    const [uSnap,pSnap] = await Promise.all([
       getDocs(query(collection(db,'unidades'),orderBy('numero'))),
       getDocs(collection(db,'proprietarios'))
     ]);
@@ -1200,29 +1489,29 @@ async function carregarUnidades(){
     $('tb-unidades').innerHTML = cacheUnidades.length ? cacheUnidades.map(u=>{
       const prop = cacheProprietarios.find(p=>p.id===u.proprietario_id);
       return `<tr>
-        <td>${u.numero}</td><td>${u.bloco||'—'}</td><td>${u.andar||'—'}</td>
+        <td style="font-weight:700;color:var(--fc-white)">${u.numero}</td>
+        <td>${u.bloco||'—'}</td><td>${u.andar||'—'}</td>
         <td>${prop?prop.nome_completo:'—'}</td>
-        <td><button class="btn btn-sm btn-outline-primary" onclick="editarUnidade('${u.id}')"><i class="bi bi-pencil"></i></button></td>
+        <td><button class="fc-btn fc-btn-outline fc-btn-sm fc-btn-icon" onclick="editarUnidade('${u.id}')"><i class="bi bi-pencil"></i></button></td>
       </tr>`;}).join('')
-    : '<tr><td colspan="5" class="text-center text-muted py-4">Nenhuma unidade.</td></tr>';
+    : '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--fc-text2)">Nenhuma unidade.</td></tr>';
   } finally { spin(false); }
 }
 window.abrirModalUnidade = async function(){
-  $('modal-unidade-titulo').textContent='Nova Unidade';
+  $('modal-unidade-titulo').innerHTML='<i class="bi bi-building me-1"></i>Nova Unidade';
   ['uu-id','uu-numero','uu-bloco','uu-andar'].forEach(id=>$(id).value='');
   await popularSelectProprietarios('uu-proprietario','');
   modal('modal-unidade').show();
 };
 window.editarUnidade = async function(id){
   const u=cacheUnidades.find(x=>x.id===id); if(!u) return;
-  $('modal-unidade-titulo').textContent='Editar Unidade';
-  $('uu-id').value=id; $('uu-numero').value=u.numero||'';
-  $('uu-bloco').value=u.bloco||''; $('uu-andar').value=u.andar||'';
+  $('modal-unidade-titulo').innerHTML='<i class="bi bi-building me-1"></i>Editar Unidade';
+  $('uu-id').value=id; $('uu-numero').value=u.numero||''; $('uu-bloco').value=u.bloco||''; $('uu-andar').value=u.andar||'';
   await popularSelectProprietarios('uu-proprietario', u.proprietario_id||'');
   modal('modal-unidade').show();
 };
 window.salvarUnidade = async function(){
-  const id=$('uu-id').value; const numero=$('uu-numero').value.trim();
+  const id=$('uu-id').value, numero=$('uu-numero').value.trim();
   if(!numero){ toast('Informe o número.','error'); return; }
   const data={numero, bloco:$('uu-bloco').value.trim()||null, andar:parseInt($('uu-andar').value)||null, proprietario_id:$('uu-proprietario').value||null};
   spin(true);
@@ -1230,10 +1519,10 @@ window.salvarUnidade = async function(){
     if(id) await updateDoc(doc(db,'unidades',id),data);
     else await addDoc(collection(db,'unidades'),data);
     toast('Unidade salva!'); modal('modal-unidade').hide(); carregarUnidades();
-  } catch(e){ toast(e.message,'error'); } finally{ spin(false); }
+  }catch(e){ toast(e.message,'error'); } finally{ spin(false); }
 };
 
-// ── Proprietários ──
+// Proprietários
 async function carregarCacheUnidades(){
   const snap = await getDocs(query(collection(db,'unidades'),orderBy('numero')));
   cacheUnidades = snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -1242,11 +1531,11 @@ function unidadeLabel(u){ return `${u.bloco?`Bloco ${u.bloco} — `:''}Unidade $
 function renderChecklistUnidades(selecionadas){
   $('mp-unidades-lista').innerHTML = cacheUnidades.length
     ? cacheUnidades.map(u=>`
-        <div class="form-check">
-          <input class="form-check-input mp-unidade-chk" type="checkbox" value="${u.id}" id="mpu-${u.id}" ${selecionadas.includes(u.id)?'checked':''}>
-          <label class="form-check-label" for="mpu-${u.id}">${unidadeLabel(u)}</label>
-        </div>`).join('')
-    : '<div class="text-muted small py-1">Nenhuma unidade cadastrada.</div>';
+        <label class="fc-check" style="padding:3px 0">
+          <input class="mp-unidade-chk" type="checkbox" value="${u.id}" ${selecionadas.includes(u.id)?'checked':''}>
+          ${unidadeLabel(u)}
+        </label>`).join('')
+    : '<div style="color:var(--fc-text2);font-size:11px">Nenhuma unidade cadastrada.</div>';
 }
 async function carregarProprietarios(){
   spin(true);
@@ -1255,20 +1544,21 @@ async function carregarProprietarios(){
     cacheProprietarios = snap.docs.map(d=>({id:d.id,...d.data()}));
     await carregarCacheUnidades();
     $('tb-proprietarios').innerHTML = cacheProprietarios.length ? cacheProprietarios.map(p=>{
-      const unidadesDoProp = cacheUnidades.filter(u=>u.proprietario_id===p.id).map(unidadeLabel).join(', ') || '—';
-      return `
-      <tr>
-        <td>${p.nome_completo}</td><td>${p.cpf||'—'}</td><td>${p.email||'—'}</td>
-        <td>${p.telefone||'—'}</td>
-        <td>${unidadesDoProp}</td>
-        <td><span class="badge ${p.ativo?'bg-success':'bg-danger'}">${p.ativo?'Ativo':'Inativo'}</span></td>
-        <td><button class="btn btn-sm btn-outline-primary" onclick="editarProprietario('${p.id}')"><i class="bi bi-pencil"></i></button></td>
+      const unids = cacheUnidades.filter(u=>u.proprietario_id===p.id).map(unidadeLabel).join(', ')||'—';
+      return `<tr>
+        <td style="font-weight:600;color:var(--fc-white)">${p.nome_completo}</td>
+        <td style="font-family:monospace;font-size:11px">${p.cpf||'—'}</td>
+        <td style="font-size:11px">${p.email||'—'}</td>
+        <td style="font-size:11px">${p.telefone||'—'}</td>
+        <td style="font-size:11px">${unids}</td>
+        <td>${ativoBadge(p.ativo)}</td>
+        <td><button class="fc-btn fc-btn-outline fc-btn-sm fc-btn-icon" onclick="editarProprietario('${p.id}')"><i class="bi bi-pencil"></i></button></td>
       </tr>`;}).join('')
-    : '<tr><td colspan="7" class="text-center text-muted py-4">Nenhum proprietário.</td></tr>';
+    : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--fc-text2)">Nenhum proprietário.</td></tr>';
   } finally { spin(false); }
 }
 window.abrirModalProprietario = async function(){
-  $('modal-prop-titulo').textContent='Novo Proprietário';
+  $('modal-prop-titulo').innerHTML='<i class="bi bi-person-plus me-1"></i>Novo Proprietário';
   ['mp-id','mp-nome','mp-cpf','mp-tel','mp-email'].forEach(id=>$(id).value='');
   $('mp-ativo').checked=true;
   await carregarCacheUnidades();
@@ -1277,55 +1567,53 @@ window.abrirModalProprietario = async function(){
 };
 window.editarProprietario = async function(id){
   const p=cacheProprietarios.find(x=>x.id===id); if(!p) return;
-  $('modal-prop-titulo').textContent='Editar Proprietário';
+  $('modal-prop-titulo').innerHTML='<i class="bi bi-pencil me-1"></i>Editar Proprietário';
   $('mp-id').value=id; $('mp-nome').value=p.nome_completo||''; $('mp-cpf').value=p.cpf||'';
   $('mp-tel').value=p.telefone||''; $('mp-email').value=p.email||''; $('mp-ativo').checked=!!p.ativo;
   await carregarCacheUnidades();
-  const vinculadas = cacheUnidades.filter(u=>u.proprietario_id===id).map(u=>u.id);
+  const vinculadas=cacheUnidades.filter(u=>u.proprietario_id===id).map(u=>u.id);
   renderChecklistUnidades(vinculadas);
   modal('modal-proprietario').show();
 };
 window.salvarProprietario = async function(){
-  const id=$('mp-id').value; const nome=$('mp-nome').value.trim(); const cpf=$('mp-cpf').value.trim();
+  const id=$('mp-id').value, nome=$('mp-nome').value.trim(), cpf=$('mp-cpf').value.trim();
   if(!nome||!cpf){ toast('Preencha nome e CPF.','error'); return; }
   const data={nome_completo:nome,cpf,telefone:$('mp-tel').value.trim()||null,email:$('mp-email').value.trim()||null,ativo:$('mp-ativo').checked};
-  const unidadesSelecionadas = Array.from(document.querySelectorAll('.mp-unidade-chk:checked')).map(c=>c.value);
+  const unidadesSelecionadas=Array.from(document.querySelectorAll('.mp-unidade-chk:checked')).map(c=>c.value);
   spin(true);
   try{
-    let propId = id;
+    let propId=id;
     if(id) await updateDoc(doc(db,'proprietarios',id),data);
-    else { const ref = await addDoc(collection(db,'proprietarios'),data); propId = ref.id; }
-
-    // Sincroniza o vínculo unidade <-> proprietário nos dois sentidos
+    else { const ref=await addDoc(collection(db,'proprietarios'),data); propId=ref.id; }
     await carregarCacheUnidades();
-    const ajustes = cacheUnidades
-      .filter(u => unidadesSelecionadas.includes(u.id) !== (u.proprietario_id===propId))
-      .map(u => updateDoc(doc(db,'unidades',u.id), { proprietario_id: unidadesSelecionadas.includes(u.id) ? propId : null }));
+    const ajustes=cacheUnidades
+      .filter(u=>unidadesSelecionadas.includes(u.id)!==(u.proprietario_id===propId))
+      .map(u=>updateDoc(doc(db,'unidades',u.id),{proprietario_id:unidadesSelecionadas.includes(u.id)?propId:null}));
     await Promise.all(ajustes);
-
     toast('Proprietário salvo!'); modal('modal-proprietario').hide(); carregarProprietarios();
-  } catch(e){ toast(e.message,'error'); } finally{ spin(false); }
+  }catch(e){ toast(e.message,'error'); } finally{ spin(false); }
 };
 
-// ── Porteiros ──
+// Porteiros
 async function carregarPorteiros(){
   spin(true);
   try{
-    const snap = await getDocs(query(collection(db,'porteiros'),orderBy('matricula')));
-    cachePorteiros = snap.docs.map(d=>({id:d.id,...d.data()}));
-    $('tb-porteiros').innerHTML = cachePorteiros.length ? cachePorteiros.map(p=>{
+    const snap=await getDocs(query(collection(db,'porteiros'),orderBy('matricula')));
+    cachePorteiros=snap.docs.map(d=>({id:d.id,...d.data()}));
+    $('tb-porteiros').innerHTML=cachePorteiros.length?cachePorteiros.map(p=>{
       const u=cacheUsuarios.find(x=>x.id===p.usuario_id);
       return `<tr>
-        <td>${u?u.nome:p.usuario_id||'—'}</td><td>${p.matricula||'—'}</td>
+        <td style="font-weight:600;color:var(--fc-white)">${u?u.nome:p.usuario_id||'—'}</td>
+        <td style="font-family:monospace">${p.matricula||'—'}</td>
         <td>${p.turno||'—'}</td>
-        <td><span class="badge ${p.ativo?'bg-success':'bg-danger'}">${p.ativo?'Ativo':'Inativo'}</span></td>
-        <td><button class="btn btn-sm btn-outline-primary" onclick="editarPorteiro('${p.id}')"><i class="bi bi-pencil"></i></button></td>
+        <td>${ativoBadge(p.ativo)}</td>
+        <td><button class="fc-btn fc-btn-outline fc-btn-sm fc-btn-icon" onclick="editarPorteiro('${p.id}')"><i class="bi bi-pencil"></i></button></td>
       </tr>`;}).join('')
-    : '<tr><td colspan="5" class="text-center text-muted py-4">Nenhum porteiro.</td></tr>';
+    :'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--fc-text2)">Nenhum porteiro.</td></tr>';
   } finally { spin(false); }
 }
 window.abrirModalPorteiro = async function(){
-  $('modal-port-titulo').textContent='Novo Porteiro';
+  $('modal-port-titulo').innerHTML='<i class="bi bi-person-badge-fill me-1"></i>Novo Porteiro';
   ['pt-id','pt-matricula','pt-turno'].forEach(id=>$(id).value='');
   $('pt-ativo').checked=true;
   await popularSelectUsuarios('pt-usuario','');
@@ -1333,13 +1621,13 @@ window.abrirModalPorteiro = async function(){
 };
 window.editarPorteiro = async function(id){
   const p=cachePorteiros.find(x=>x.id===id); if(!p) return;
-  $('modal-port-titulo').textContent='Editar Porteiro';
+  $('modal-port-titulo').innerHTML='<i class="bi bi-pencil me-1"></i>Editar Porteiro';
   $('pt-id').value=id; $('pt-matricula').value=p.matricula||''; $('pt-turno').value=p.turno||''; $('pt-ativo').checked=!!p.ativo;
   await popularSelectUsuarios('pt-usuario',p.usuario_id||'');
   modal('modal-porteiro').show();
 };
 window.salvarPorteiro = async function(){
-  const id=$('pt-id').value; const uid=$('pt-usuario').value; const mat=$('pt-matricula').value.trim();
+  const id=$('pt-id').value, uid=$('pt-usuario').value, mat=$('pt-matricula').value.trim();
   if(!uid||!mat){ toast('Selecione o usuário e informe a matrícula.','error'); return; }
   const data={usuario_id:uid,matricula:mat,turno:$('pt-turno').value.trim()||null,ativo:$('pt-ativo').checked};
   spin(true);
@@ -1347,69 +1635,65 @@ window.salvarPorteiro = async function(){
     if(id) await updateDoc(doc(db,'porteiros',id),data);
     else await addDoc(collection(db,'porteiros'),data);
     toast('Porteiro salvo!'); modal('modal-porteiro').hide(); carregarPorteiros();
-  } catch(e){ toast(e.message,'error'); } finally{ spin(false); }
+  }catch(e){ toast(e.message,'error'); } finally{ spin(false); }
 };
 
-// ── Helpers select ──
+// Helpers select
 async function popularSelectProprietarios(selectId, selecionado){
   if(!cacheProprietarios.length){
-    const snap = await getDocs(query(collection(db,'proprietarios'),orderBy('nome_completo')));
-    cacheProprietarios = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const snap=await getDocs(query(collection(db,'proprietarios'),orderBy('nome_completo')));
+    cacheProprietarios=snap.docs.map(d=>({id:d.id,...d.data()}));
   }
-  $(selectId).innerHTML = '<option value="">— Sem proprietário —</option>'
-    + cacheProprietarios.map(p=>`<option value="${p.id}" ${p.id===selecionado?'selected':''}>${p.nome_completo}</option>`).join('');
+  $(selectId).innerHTML='<option value="">— Sem proprietário —</option>'
+    +cacheProprietarios.map(p=>`<option value="${p.id}" ${p.id===selecionado?'selected':''}>${p.nome_completo}</option>`).join('');
 }
 async function popularSelectUsuarios(selectId, selecionado){
   if(!cacheUsuarios.length){
-    const snap = await getDocs(query(collection(db,'usuarios'),orderBy('nome')));
-    cacheUsuarios = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const snap=await getDocs(query(collection(db,'usuarios'),orderBy('nome')));
+    cacheUsuarios=snap.docs.map(d=>({id:d.id,...d.data()}));
   }
-  $(selectId).innerHTML = '<option value="">Selecione...</option>'
-    + cacheUsuarios.map(u=>`<option value="${u.id}" ${u.id===selecionado?'selected':''}>${u.nome} (${u.email})</option>`).join('');
+  $(selectId).innerHTML='<option value="">Selecione...</option>'
+    +cacheUsuarios.map(u=>`<option value="${u.id}" ${u.id===selecionado?'selected':''}>${u.nome} (${u.email})</option>`).join('');
 }
 
-// ── Perfil ──
+// Perfil
 function preencherPerfil(){
-  $('perfil-nome').value = usuarioAtual.nome||'';
-  $('perfil-email').value = usuarioAtual.email||'';
-  $('perfil-tipo').value = PERFIL_LABEL[usuarioAtual.perfil]||'—';
+  $('perfil-nome').value=usuarioAtual.nome||'';
+  $('perfil-email').value=usuarioAtual.email||'';
+  $('perfil-tipo').value=PERFIL_LABEL[usuarioAtual.perfil]||'—';
   $('perfil-nova-senha').value='';
 }
 window.salvarPerfil = async function(){
-  const nome=$('perfil-nome').value.trim();
-  const nova=$('perfil-nova-senha').value;
+  const nome=$('perfil-nome').value.trim(), nova=$('perfil-nova-senha').value;
   spin(true);
   try{
     await updateDoc(doc(db,'usuarios',usuarioAtual.id),{nome});
-    usuarioAtual.nome = nome;
-    $('sb-nome').textContent = nome;
-    $('sb-avatar').textContent = nome.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
-    if(nova){
-      await updatePassword(auth.currentUser, nova);
-      toast('Senha alterada!');
-    }
+    usuarioAtual.nome=nome;
+    $('sb-nome').textContent=nome;
+    $('sb-avatar').textContent=nome.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
+    if(nova){ await updatePassword(auth.currentUser,nova); toast('Senha alterada!'); }
     toast('Perfil salvo!');
-  } catch(e){ toast(e.message,'error'); } finally{ spin(false); }
+  }catch(e){ toast(e.message,'error'); } finally{ spin(false); }
 };
 
-// ── Exportar CSV ──
+// Exportar CSV
 window.exportarCSV = async function(){
   if(!podeGerenciar()){ toast('Sem permissão.','error'); return; }
   spin(true);
   try{
-    const snap = await getDocs(query(collection(db,'visitantes'),orderBy('horario_chegada','desc')));
-    const rows = [['Nome Completo','CPF','Nascimento','Unidade','Tipo','Status','Chegada','Autorização','Saída','Autorizado por','Registrado por','Placa']];
+    const snap=await getDocs(query(collection(db,'visitantes'),orderBy('horario_chegada','desc')));
+    const rows=[['Nome Completo','CPF','Nascimento','Unidade','Tipo','Status','Chegada','Autorização','Saída','Autorizado por','Registrado por','Placa']];
     snap.docs.forEach(d=>{
       const v=d.data();
       rows.push([
-        v.nome_completo||'', v.cpf||'', v.data_nascimento||'', v.unidade_label||'',
-        TIPO_LABEL[v.tipo]||v.tipo||'', STATUS_LABEL[v.status]||v.status||'',
-        fmtDt(v.horario_chegada), fmtDt(v.horario_autorizacao), fmtDt(v.horario_saida),
-        v.autorizado_por_nome||'', v.registrado_por_nome||'', v.placa_veiculo||''
+        v.nome_completo||'',v.cpf||'',v.data_nascimento||'',v.unidade_label||'',
+        TIPO_LABEL[v.tipo]||v.tipo||'',STATUS_LABEL[v.status]||v.status||'',
+        fmtDt(v.horario_chegada),fmtDt(v.horario_autorizacao),fmtDt(v.horario_saida),
+        v.autorizado_por_nome||'',v.registrado_por_nome||'',v.placa_veiculo||''
       ]);
     });
-    const csv = '\ufeff' + rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
-    const blob = new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const csv='\ufeff'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
     a.download=`visitantes_${new Date().toISOString().slice(0,10)}.csv`; a.click();
     toast('CSV exportado!');
