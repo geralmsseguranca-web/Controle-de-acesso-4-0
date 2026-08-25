@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Controle de Acesso — PJ Tecnologia e Sistemas</title>
+<title>Controle de Acesso 4.0 — PJ Tecnologia e Sistemas</title>
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp }                              from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -3410,7 +3410,7 @@
       <text x="18" y="22" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-weight="700" font-size="10" fill="white" letter-spacing="0.5">PJ</text>
     </svg>
     <div class="header-title">
-      <strong>Controle de Acesso</strong>
+      <strong>Controle de Acesso <span style="opacity:.65;font-weight:600">4.0</span></strong>
       <span>PJ Tecnologia e Sistemas</span>
     </div>
   </div>
@@ -4027,6 +4027,7 @@
             <input class="wiz-input" type="text" id="wiz-doc-input"
               placeholder="Digite para buscar..."
               oninput="buscaWiz.buscarDoc()"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();buscaWiz.avancar();}"
               style="flex:1;margin:0">
             <button class="btn btn-secondary" style="flex-shrink:0;padding:0 10px;height:38px" onclick="buscaWiz.limparBusca()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -4587,7 +4588,7 @@
 
 
 <footer class="footer">
-  <span>PJ Tecnologia e Sistemas · v1.0</span>
+  <span>PJ Tecnologia e Sistemas · Controle de Acesso 4.0</span>
   <span id="footer-status">Status da licença: <strong style="color:var(--green-glow)">● ATIVA</strong></span>
 </footer>
 
@@ -5626,8 +5627,8 @@
       <div class="form-section">
         <div class="form-section-title">ℹ️ Sobre o Sistema</div>
         <div style="font-size:12px;color:var(--text-muted);line-height:2">
-          <div>Sistema: <strong style="color:var(--text)">Controle de Acesso — PJ Tecnologia e Sistemas</strong></div>
-          <div>Versão: <strong style="color:var(--text)">v14.4</strong></div>
+          <div>Sistema: <strong style="color:var(--text)">Controle de Acesso 4.0 — PJ Tecnologia e Sistemas</strong></div>
+          <div>Versão: <strong style="color:var(--text)">4.0</strong></div>
           <div>Desenvolvido por: <strong style="color:var(--text)">PJ Tecnologia e Sistemas</strong></div>
           <div>Armazenamento: <strong style="color:var(--text)">LocalStorage (navegador)</strong></div>
           <div>Compatibilidade: <strong style="color:var(--text)">Chrome, Firefox, Edge, Safari</strong></div>
@@ -7483,7 +7484,8 @@
       const q = (document.getElementById('wiz-doc-input').value || '').trim();
       const el = document.getElementById('wiz-busca-resultado');
       const hint = document.getElementById('wiz-busca-hint');
-      if (q.length < 2) {
+      const minChars = wizDocTipo === 'Nome' ? 3 : 2;
+      if (q.length < minChars) {
         el.style.display = 'none';
         if (hint) hint.style.display = 'none';
         wizCadFound = null;
@@ -7527,7 +7529,12 @@
       } else {
         wizCadFound = null;
         el.style.display = 'none';
-        if (hint) hint.style.display = q.length >= 3 ? 'block' : 'none';
+        if (hint) {
+          hint.style.display = 'block';
+          hint.innerHTML = wizDocTipo === 'Nome'
+            ? `Nenhum cadastro para <strong>${q}</strong> — pressione Enter ou Avançar para cadastrar como novo`
+            : 'Nenhum cadastro encontrado — prossiga para cadastrar como novo';
+        }
       }
     },
 
@@ -7840,10 +7847,12 @@
         } else {
           // Preenche campos com o que foi digitado no campo principal
           if (docVal) {
+            if (wizDocTipo === 'Nome')  document.getElementById('wiz-nome').value  = docVal;
             if (wizDocTipo === 'CPF')   document.getElementById('wiz-cpf').value   = docVal;
             if (wizDocTipo === 'RG')    document.getElementById('wiz-rg').value    = docVal;
             if (wizDocTipo === 'Placa') document.getElementById('wiz-placa').value = docVal;
             if (wizDocTipo === 'Email') document.getElementById('wiz-email').value = docVal;
+            if (wizDocTipo === 'CNPJ')  document.getElementById('wiz-cnpj').value  = docVal;
           }
           document.getElementById('wiz-found-banner').style.display = 'none';
           // Pre-set veiculo placa
@@ -7851,7 +7860,15 @@
           document.getElementById('wiz-tipo-display').value = wizTipoPessoa;
         }
         this._goEtapa(2);
-        setTimeout(() => document.getElementById('wiz-nome')?.focus(), 100);
+        // Nome já veio preenchido (encontrado ou digitado) -> foco vai direto para o próximo campo vazio
+        setTimeout(() => {
+          const nomeEl = document.getElementById('wiz-nome');
+          if (nomeEl && nomeEl.value.trim()) {
+            (document.getElementById('wiz-tel') || nomeEl).focus();
+          } else {
+            nomeEl?.focus();
+          }
+        }, 100);
 
       } else if (wizEtapa === 2) {
         const nome = document.getElementById('wiz-nome').value.trim();
