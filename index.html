@@ -3764,10 +3764,19 @@
       <!-- Últimos eventos -->
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden">
         <div style="padding:10px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text);display:flex;justify-content:space-between;align-items:center">
-          <span>📋 Visitantes Ativos Agora</span>
+          <span>📋 Visitantes / Prestadores Ativos Agora</span>
           <button class="btn btn-secondary" style="font-size:10px;padding:3px 10px" onclick="visitantes.open()">Ver todos →</button>
         </div>
         <div id="mon-visit-lista" style="max-height:320px;overflow-y:auto;padding:8px"></div>
+      </div>
+
+      <!-- Entregas pendentes -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+        <div style="padding:10px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text);display:flex;justify-content:space-between;align-items:center">
+          <span>📦 Entregas Aguardando Retirada</span>
+          <button class="btn btn-secondary" style="font-size:10px;padding:3px 10px" onclick="entregas.open()">Ver todas →</button>
+        </div>
+        <div id="mon-entr-lista" style="max-height:260px;overflow-y:auto;padding:8px"></div>
       </div>
 
       <!-- Status dispositivos -->
@@ -5708,23 +5717,48 @@
       if (s('mon-chaves-ret'))    s('mon-chaves-ret').textContent    = chvRet;
       if (s('mon-disp-online'))   s('mon-disp-online').textContent   = dOnline;
 
-      // Lista visitantes ativos
+      // Lista visitantes/prestadores ativos — clique abre a ficha completa com o botão de dar baixa
       const lista = document.getElementById('mon-visit-lista');
       if (lista) {
         const ativos = typeof visitDB !== 'undefined' ? visitDB.filter(v => v.status==='dentro'||v.status==='aguard') : [];
         if (!ativos.length) {
-          lista.innerHTML = '<div style="text-align:center;padding:20px;font-size:11px;color:var(--text-muted)">Nenhum visitante no local agora.</div>';
+          lista.innerHTML = '<div style="text-align:center;padding:20px;font-size:11px;color:var(--text-muted)">Nenhum visitante ou prestador no local agora.</div>';
         } else {
           lista.innerHTML = ativos.map(v => {
             const cor = v.status==='dentro' ? 'var(--green-glow)' : 'var(--amber)';
             const lbl = v.status==='dentro' ? 'No Local' : 'Aguardando';
-            return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;background:var(--surface2);margin-bottom:4px">
+            return `<div onclick="monitoramento.abrirVisitante(${v.id})"
+              style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;background:var(--surface2);margin-bottom:4px;cursor:pointer"
+              onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface2)'">
               <div style="width:8px;height:8px;border-radius:50%;background:${cor};flex-shrink:0"></div>
               <div style="flex:1;min-width:0">
-                <div style="font-size:12px;font-weight:600;color:var(--text)">${v.nome}</div>
+                <div style="font-size:12px;font-weight:600;color:var(--text)">${v.nome} <span style="font-weight:400;color:var(--text-muted);font-size:10px">· ${v.tipo||'Visitante'}</span></div>
                 <div style="font-size:10px;color:var(--text-muted)">Bl.${v.bloco||'—'} Un.${v.unidade||'—'} · ${v.anfitriao||'—'} · Entrada: ${v.entrada||'—'}</div>
               </div>
               <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:${v.status==='dentro'?'rgba(46,160,67,.15)':'rgba(210,153,34,.15)'};color:${cor}">${lbl}</span>
+            </div>`;
+          }).join('');
+        }
+      }
+
+      // Lista entregas pendentes — clique abre a ficha completa com o botão de dar baixa (retirada)
+      const listaEntr = document.getElementById('mon-entr-lista');
+      if (listaEntr) {
+        const pendentes = typeof entrDB !== 'undefined' ? entrDB.filter(e => e.status === 'aguard') : [];
+        if (!pendentes.length) {
+          listaEntr.innerHTML = '<div style="text-align:center;padding:20px;font-size:11px;color:var(--text-muted)">Nenhuma entrega aguardando retirada.</div>';
+        } else {
+          listaEntr.innerHTML = pendentes.map(e => {
+            const dateFmt = e.dataEntrada ? e.dataEntrada.split('-').reverse().join('/') : '—';
+            return `<div onclick="monitoramento.abrirEntrega(${e.id})"
+              style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;background:var(--surface2);margin-bottom:4px;cursor:pointer"
+              onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface2)'">
+              <div style="font-size:16px;flex-shrink:0">📦</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12px;font-weight:600;color:var(--text)">${e.destinatario}</div>
+                <div style="font-size:10px;color:var(--text-muted)">Bl.${e.bloco||'—'} Un.${e.unidade||'—'} · ${e.transportadora||'—'} · ${dateFmt}</div>
+              </div>
+              <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(210,153,34,.15);color:var(--amber)">Aguardando</span>
             </div>`;
           }).join('');
         }
@@ -5746,7 +5780,19 @@
       }
 
       if (s('mon-ultimo-update')) s('mon-ultimo-update').textContent = new Date().toLocaleTimeString('pt-BR');
-    }
+    },
+
+    // Abre a ficha completa do visitante/prestador direto a partir do monitoramento, já com o botão de dar baixa disponível
+    abrirVisitante(id) {
+      visitantes.open();
+      visitantes.select(id);
+    },
+
+    // Abre a ficha completa da entrega direto a partir do monitoramento, já com o botão de dar baixa (retirada) disponível
+    abrirEntrega(id) {
+      entregas.open();
+      entregas.select(id);
+    },
   };
 
   // Menu handlers
