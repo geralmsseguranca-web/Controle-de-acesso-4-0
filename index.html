@@ -3464,14 +3464,14 @@
   </button>
 
   <!-- Unidades -->
-  <button class="tool-btn" title="Unidades" onclick="unidades.open()">
+  <button class="tool-btn" id="btn-tool-unidades" title="Unidades" onclick="unidades.open()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
       <rect x="3" y="3" width="8" height="8" rx="1"/>
       <rect x="13" y="3" width="8" height="8" rx="1"/>
       <rect x="3" y="13" width="8" height="8" rx="1"/>
       <rect x="13" y="13" width="8" height="8" rx="1"/>
     </svg>
-    Unidades
+    <span id="lbl-tool-unidades">Unidades</span>
   </button>
 
   <!-- Busca por Doc -->
@@ -3640,7 +3640,7 @@
           <span class="s-val" id="sb-ind-moradores">0</span>
         </div>
         <div class="status-row">
-          <span class="s-label">Unidades</span>
+          <span class="s-label" id="lbl-sb-unidades">Unidades</span>
           <span class="s-val" id="sb-ind-unidades">0</span>
         </div>
         <div class="status-row">
@@ -3895,8 +3895,8 @@
           <rect x="13" y="13" width="8" height="8" rx="1"/>
         </svg>
         <div>
-          <div class="mod-title">Unidades</div>
-          <div class="mod-subtitle">Cadastro e gerenciamento de unidades do condomínio</div>
+          <div class="mod-title" id="lbl-unid-titulo">Unidades</div>
+          <div class="mod-subtitle" id="lbl-unid-subtitulo">Cadastro e gerenciamento de unidades do condomínio</div>
         </div>
       </div>
       <button class="mod-close" onclick="closeModule('mod-unidades')">✕</button>
@@ -3904,7 +3904,7 @@
     <div class="mod-toolbar">
       <button class="btn btn-primary" onclick="unidades.nova()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-        Nova Unidade
+        <span id="lbl-unid-btn-novo">Nova Unidade</span>
       </button>
       <button class="btn btn-secondary" id="btn-editar-unid" onclick="unidades.editar()" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -3922,6 +3922,14 @@
         <button class="chip" data-ufilter="Apartamento" onclick="unidades.setFilter(this,'Apartamento')">Apto</button>
         <button class="chip" data-ufilter="Casa" onclick="unidades.setFilter(this,'Casa')">Casa</button>
         <button class="chip" data-ufilter="Comercial" onclick="unidades.setFilter(this,'Comercial')">Comercial</button>
+      </div>
+      <div class="field" style="display:flex;align-items:center;gap:6px;margin-left:8px">
+        <label style="font-size:10px;color:var(--text-muted);white-space:nowrap">Chamar de:</label>
+        <select id="sel-termo-unidade" onchange="aplicarTermoUnidade(this.value)"
+          style="font-size:11px;padding:5px 8px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer">
+          <option value="Unidade">Unidade</option>
+          <option value="Apartamento">Apartamento</option>
+        </select>
       </div>
       <div class="mod-search">
         <div class="search-wrap">
@@ -3942,7 +3950,7 @@
       <!-- Detalhe -->
       <div class="unid-detail">
         <div class="detail-tabs" id="unid-detail-tabs" style="display:none">
-          <button class="detail-tab active" onclick="unidades.switchTab(this,'dados')">Dados da Unidade</button>
+          <button class="detail-tab active" onclick="unidades.switchTab(this,'dados')" id="lbl-unid-tab-dados">Dados da Unidade</button>
           <button class="detail-tab" onclick="unidades.switchTab(this,'moradores')">Moradores</button>
           <button class="detail-tab" onclick="unidades.switchTab(this,'vagas')">Vagas de Garagem</button>
           <button class="detail-tab" onclick="unidades.switchTab(this,'historico')">Histórico</button>
@@ -3955,8 +3963,8 @@
               <rect x="3" y="13" width="8" height="8" rx="1"/>
               <rect x="13" y="13" width="8" height="8" rx="1"/>
             </svg>
-            <h3>Nenhuma unidade selecionada</h3>
-            <p>Selecione uma unidade na lista ou clique em <strong>Nova Unidade</strong>.</p>
+            <h3 id="lbl-unid-empty-h3">Nenhuma unidade selecionada</h3>
+            <p id="lbl-unid-empty-p">Selecione uma unidade na lista ou clique em <strong>Nova Unidade</strong>.</p>
           </div>
         </div>
       </div>
@@ -4004,24 +4012,6 @@
     <!-- ETAPA 1: Identificação -->
     <div class="wiz-body" id="wiz-body-1">
       <div class="wiz-field-group">
-        <div class="wiz-field">
-          <label>Tipo de pessoa</label>
-          <div class="wiz-type-btns">
-            <button class="wiz-type-btn active" id="wiz-tipo-visitante" onclick="buscaWiz.setTipoPessoa('Visitante',this)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7" r="4"/><path d="M5 21c0-4 3.1-7 7-7s7 3 7 7"/></svg>
-              Visitante
-            </button>
-            <button class="wiz-type-btn" id="wiz-tipo-prestador" onclick="buscaWiz.setTipoPessoa('Prestador',this)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
-              Prestador
-            </button>
-            <button class="wiz-type-btn" id="wiz-tipo-entrega" onclick="buscaWiz.setTipoPessoa('Entrega',this)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12H3l9-9 9 9h-2M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/><path d="M9 22V12h6v10"/></svg>
-              Entrega
-            </button>
-          </div>
-        </div>
-
         <div class="wiz-field">
           <label>Buscar no cadastro</label>
           <div style="display:flex;gap:8px;align-items:center">
@@ -4089,22 +4079,21 @@
         <input type="hidden" id="wiz-foto-data">
 
         <div class="wiz-field">
+          <label>Tipo de registro *</label>
+          <select class="wiz-input wiz-select" id="wiz-tipo-display" style="font-weight:700">
+            <option value="Visitante">Visitante</option>
+            <option value="Prestador">Prestador de serviço</option>
+            <option value="Entrega">Entrega</option>
+          </select>
+        </div>
+
+        <div class="wiz-field">
           <label>Nome completo *</label>
           <input class="wiz-input" type="text" id="wiz-nome" placeholder="Nome do visitante/prestador">
         </div>
-        <div class="wiz-row2">
-          <div class="wiz-field">
-            <label>Telefone</label>
-            <input class="wiz-input" type="tel" id="wiz-tel" placeholder="(00) 00000-0000">
-          </div>
-          <div class="wiz-field">
-            <label>Tipo</label>
-            <select class="wiz-input wiz-select" id="wiz-tipo-display">
-              <option value="Visitante">Visitante</option>
-              <option value="Prestador">Prestador</option>
-              <option value="Entrega">Entrega</option>
-            </select>
-          </div>
+        <div class="wiz-field">
+          <label>Telefone</label>
+          <input class="wiz-input" type="tel" id="wiz-tel" placeholder="(00) 00000-0000">
         </div>
         <div class="wiz-field">
           <label>Motivo da visita</label>
@@ -4189,7 +4178,7 @@
             <input type="hidden" id="wiz-bloco">
           </div>
           <div class="wiz-field">
-            <label>Unidade</label>
+            <label id="lbl-wiz-unidade">Unidade</label>
             <div style="position:relative">
               <select class="wiz-input wiz-select" id="wiz-unidade-sel" onchange="buscaWiz.selecionarUnidadeSel(this.value)"
                 style="appearance:none;-webkit-appearance:none;padding-right:28px;cursor:pointer" disabled>
@@ -5581,7 +5570,7 @@
         </div>
         <div class="quick-card" onclick="unidades.open()">
           <svg viewBox="0 0 24 24" fill="none" stroke="#2060b0" stroke-width="1.6"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
-          <span>Gestão de Unidades</span>
+          <span id="lbl-quick-unidades">Gestão de Unidades</span>
         </div>
         <div class="quick-card" onclick="dispositivos.open()">
           <svg viewBox="0 0 24 24" fill="none" stroke="#2d6a2d" stroke-width="1.6"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h8" stroke-linecap="round"/></svg>
@@ -5623,7 +5612,7 @@
         <div style="font-size:12px;color:var(--text-muted);line-height:2">
           <div><strong style="color:var(--text)">🚪 Visitantes</strong> — Registrar entradas, consultar visitantes no local, registrar saídas.</div>
           <div><strong style="color:var(--text)">👥 Moradores</strong> — Cadastrar, editar, ativar/inativar moradores e seus veículos.</div>
-          <div><strong style="color:var(--text)">🏠 Unidades</strong> — Gerenciar apartamentos, casas e unidades comerciais.</div>
+          <div><strong style="color:var(--text)">🏠 <span id="lbl-ajuda-unidades">Unidades</span></strong> — Gerenciar apartamentos, casas e unidades comerciais.</div>
           <div><strong style="color:var(--text)">📦 Entregas</strong> — Registrar encomendas recebidas para moradores.</div>
           <div><strong style="color:var(--text)">💬 Recados</strong> — Anotar e consultar recados internos da portaria.</div>
           <div><strong style="color:var(--text)">🔑 Chaves</strong> — Controlar retirada e devolução de chaves.</div>
@@ -6146,7 +6135,7 @@
               Exportado em: ${_bkpDados._exportado ? new Date(_bkpDados._exportado).toLocaleString('pt-BR') : '—'}<br>
               Moradores: ${(_bkpDados.moradores||[]).length}<br>
               Visitantes: ${(_bkpDados.visitantes||[]).length}<br>
-              Unidades: ${(_bkpDados.unidades||[]).length}<br>
+              <span id="lbl-bkp-unidades">Unidades</span>: ${(_bkpDados.unidades||[]).length}<br>
               Dispositivos: ${(_bkpDados.dispositivos||[]).length}<br>
               Chaves: ${(_bkpDados.chaves||[]).length}<br>
               Entregas: ${(_bkpDados.entregas||[]).length}<br>
@@ -6216,7 +6205,7 @@
       this.resultado(`<strong style="color:var(--text)">Contadores gerais do sistema:</strong><br><br>
         👥 Moradores cadastrados: <strong>${mor}</strong><br>
         🚪 Registros de visita: <strong>${vis}</strong><br>
-        🏠 Unidades cadastradas: <strong>${uni}</strong><br>
+        🏠 <span id="lbl-status-unidades">Unidades cadastradas</span>: <strong>${uni}</strong><br>
         📡 Dispositivos: <strong>${dis}</strong><br>
         🔑 Chaves cadastradas: <strong>${chv}</strong>`);
     },
@@ -6879,6 +6868,7 @@
   const unidades = {
     open() {
       document.getElementById('mod-unidades').classList.add('open');
+      aplicarTermoUnidade();
       this.renderList();
     },
 
@@ -8142,6 +8132,56 @@
   }
   function saveRecDB() { localStorage.setItem('rec_db', JSON.stringify(recDB)); atualizarSidebar(); }
 
+  // ══ NOMENCLATURA DE UNIDADE (Unidade / Apartamento) ═══
+  const TERMO_UNIDADE_OPTS = {
+    Unidade: {
+      sing: 'Unidade', plural: 'Unidades',
+      novo: 'Nova Unidade', dados: 'Dados da Unidade',
+      empty_h3: 'Nenhuma unidade selecionada',
+      empty_p: 'Selecione uma unidade na lista ou clique em <strong>Nova Unidade</strong>.',
+      subtitle: 'Cadastro e gerenciamento de unidades do condomínio',
+    },
+    Apartamento: {
+      sing: 'Apartamento', plural: 'Apartamentos',
+      novo: 'Novo Apartamento', dados: 'Dados do Apartamento',
+      empty_h3: 'Nenhum apartamento selecionado',
+      empty_p: 'Selecione um apartamento na lista ou clique em <strong>Novo Apartamento</strong>.',
+      subtitle: 'Cadastro e gerenciamento de apartamentos do condomínio',
+    },
+  };
+  function termoAtual() {
+    return TERMO_UNIDADE_OPTS[localStorage.getItem('termo_unidade')] || TERMO_UNIDADE_OPTS.Unidade;
+  }
+  function aplicarTermoUnidade(valor) {
+    if (valor) localStorage.setItem('termo_unidade', valor);
+    const t = termoAtual();
+    const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+
+    set('lbl-tool-unidades', t.plural);
+    document.getElementById('btn-tool-unidades')?.setAttribute('title', t.plural);
+    set('lbl-sb-unidades', t.plural);
+    set('lbl-unid-titulo', t.plural);
+    set('lbl-unid-subtitulo', t.subtitle);
+    set('lbl-unid-btn-novo', t.novo);
+    set('lbl-unid-tab-dados', t.dados);
+    set('lbl-unid-empty-h3', t.empty_h3);
+    setHtml('lbl-unid-empty-p', t.empty_p);
+    set('lbl-wiz-unidade', t.sing);
+    set('lbl-quick-unidades', 'Gestão de ' + t.plural);
+    set('lbl-ajuda-unidades', t.plural);
+    set('lbl-bkp-unidades', t.plural);
+    set('lbl-status-unidades', t.plural + ' cadastradas');
+
+    const sel = document.getElementById('sel-termo-unidade');
+    if (sel) sel.value = localStorage.getItem('termo_unidade') || 'Unidade';
+
+    // Re-renderiza telas que já estejam abertas para refletir a troca imediatamente
+    if (typeof unidades !== 'undefined' && document.getElementById('mod-unidades')?.classList.contains('open')) unidades.filtrar?.();
+    if (typeof relatorios !== 'undefined' && document.getElementById('mod-relatorios')?.classList.contains('open')) { /* recalculado na próxima geração */ }
+  }
+  document.addEventListener('DOMContentLoaded', () => aplicarTermoUnidade());
+
   const visitantes = {
     open() {
       document.getElementById('mod-visitantes').classList.add('open');
@@ -9118,7 +9158,7 @@
           <table class="rel-table">
             <thead>
               <tr>
-                <th>#</th><th>Nome</th><th>CPF</th><th>Bloco</th><th>Unidade</th>
+                <th>#</th><th>Nome</th><th>CPF</th><th>Bloco</th><th>${termoAtual().sing}</th>
                 <th>Perfil</th><th>Telefone</th><th>Veículos</th><th>Status</th><th>Cadastro</th>
               </tr>
             </thead>
@@ -9330,7 +9370,7 @@
         titulo = 'Relatório de Moradores';
         tableHTML = `
           <table>
-            <thead><tr><th>#</th><th>Nome</th><th>CPF</th><th>Bloco</th><th>Unidade</th><th>Perfil</th><th>Telefone</th><th>Veículos</th><th>Status</th><th>Cadastro</th></tr></thead>
+            <thead><tr><th>#</th><th>Nome</th><th>CPF</th><th>Bloco</th><th>${termoAtual().sing}</th><th>Perfil</th><th>Telefone</th><th>Veículos</th><th>Status</th><th>Cadastro</th></tr></thead>
             <tbody>${list.map((m, i) => `
               <tr>
                 <td>${i + 1}</td><td><b>${m.nome}</b></td><td>${m.cpf || '—'}</td>
@@ -10607,7 +10647,7 @@ ${tableHTML}
             <div class="field"><label>Bloco</label>
               <input type="text" id="rsv-bloco" value="${r.bloco||''}" placeholder="A">
             </div>
-            <div class="field"><label>Unidade</label>
+            <div class="field"><label>${termoAtual().sing}</label>
               <input type="text" id="rsv-unidade" value="${r.unidade||''}" placeholder="101">
             </div>
             <div class="field"><label>Telefone</label>
@@ -11599,7 +11639,7 @@ ${tableHTML}
             '<div class="field"><label>Bloco</label>' +
               '<input type="text" id="rcf-bloco" value="' + (r.bloco||'') + '" placeholder="Ex: A">' +
             '</div>' +
-            '<div class="field"><label>Unidade</label>' +
+            '<div class="field"><label>' + termoAtual().sing + '</label>' +
               '<input type="text" id="rcf-unidade" value="' + (r.unidade||'') + '" placeholder="Ex: 101">' +
             '</div>' +
             '<div class="field"><label>Tipo de Recado</label>' +
