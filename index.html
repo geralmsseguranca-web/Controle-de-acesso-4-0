@@ -4243,7 +4243,7 @@
 
     <!-- Busca -->
     <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08)">
-      <input id="modal-mod-busca" type="text" placeholder="Buscar..."
+      <input id="modal-mod-busca" type="text" placeholder="Buscar ou digitar para cadastrar novo..."
         oninput="buscaWiz.filtrarModalVeic()"
         style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#0d1117;color:#e6edf3;font-size:13px;box-sizing:border-box">
     </div>
@@ -7336,31 +7336,62 @@
     },
 
     _marcasModelos: {
-      'Chevrolet':   ['Onix','Onix Plus','Tracker','Spin','S10','Equinox','Blazer','Trailblazer','Montana','Captiva'],
-      'Volkswagen':  ['Gol','Polo','T-Cross','Virtus','Saveiro','Amarok','Taos','Nivus','Fox','Voyage'],
-      'Fiat':        ['Argo','Mobi','Pulse','Cronos','Strada','Toro','Fastback','500','Ducato','Doblò'],
-      'Hyundai':     ['HB20','HB20S','Creta','Tucson','Santa Fe','i30','Azera'],
-      'Toyota':      ['Corolla','Hilux','Yaris','SW4','RAV4','Camry','Etios','Land Cruiser'],
-      'Renault':     ['Kwid','Sandero','Duster','Oroch','Logan','Captur','Stepway','Master'],
-      'Honda':       ['Civic','HR-V','Fit','City','WR-V','CR-V','Accord','Pilot'],
-      'Ford':        ['Ka','EcoSport','Ranger','Territory','Maverick','Bronco','Edge','Explorer'],
-      'Nissan':      ['Kicks','Frontier','Versa','March','Sentra','X-Trail','Murano'],
-      'Jeep':        ['Renegade','Compass','Commander','Grand Cherokee','Wrangler'],
-      'Peugeot':     ['208','2008','308','3008','408','508','Partner','Boxer'],
-      'Citroën':     ['C3','C4 Cactus','C5 Aircross','Jumpy','Berlingo','DS 3'],
-      'Mitsubishi':  ['L200','Eclipse Cross','Outlander','ASX','Pajero','Pajero Sport'],
-      'Kia':         ['Sportage','Stonic','Carnival','Sorento','Telluride','Picanto','Cerato'],
-      'BMW':         ['320i','328i','118i','X1','X3','X5','M3','Serie 5'],
-      'Mercedes-Benz':['A 200','C 180','C 200','GLA','GLC','GLE','Sprinter','Vito'],
-      'Audi':        ['A3','A4','Q3','Q5','Q7','TT','RS3','e-tron'],
-      'Yamaha (Moto)':['Factor 150','Fazer 250','MT-03','MT-07','Lander','Crosser','NMax','Biz'],
-      'Honda (Moto)': ['CG 160','CB 500','XRE 300','Biz 110','Pop 110','CB 650','Hornet','Africa Twin'],
-      'Suzuki (Moto)':['GSX-S750','V-Strom 650','Intruder','Burgman','Bandit'],
-      'Utilitários':  ['VW Delivery','Mercedes Sprinter','Iveco Daily','Fiat Ducato','Ford Transit','Renault Master'],
+      'Chevrolet':    ['Onix','Onix Plus','Onix Sedan','Tracker','Spin','S10','Equinox','Blazer','Trailblazer','Montana','Captiva','Cruze','Cobalt','Prisma','Celta','Corsa','Astra','Vectra','Camaro','Bolt EUV','Trailblazer Redline','Agile'],
+      'Volkswagen':   ['Gol','Polo','Polo Track','T-Cross','Virtus','Saveiro','Amarok','Taos','Nivus','Fox','Voyage','Jetta','Golf','Passat','Tiguan','Up!','Fusca','Kombi','Parati','Santana','SpaceFox','CrossFox'],
+      'Fiat':         ['Argo','Mobi','Pulse','Cronos','Strada','Toro','Fastback','500','Ducato','Doblò','Uno','Palio','Siena','Punto','Linea','Idea','Bravo','Grand Siena','Fiorino','Scudo','Titano'],
+      'Hyundai':      ['HB20','HB20S','HB20X','Creta','Tucson','Santa Fe','i30','Azera','ix35','Elantra','Sonata','Veloster','HR','Palisade','Kona'],
+      'Toyota':       ['Corolla','Corolla Cross','Hilux','Hilux SW4','Yaris','Yaris Sedan','RAV4','Camry','Etios','Land Cruiser','Land Cruiser Prado','Prius','C-HR','Fielder'],
+      'Renault':      ['Kwid','Sandero','Duster','Oroch','Logan','Captur','Stepway','Master','Clio','Kangoo','Fluence','Megane','Symbol'],
+      'Honda':        ['Civic','HR-V','Fit','City','City Hatchback','WR-V','CR-V','Accord','Pilot','ZR-V'],
+      'Ford':         ['Ka','Ka Sedan','EcoSport','Ranger','Territory','Maverick','Bronco','Bronco Sport','Edge','Explorer','Fiesta','Focus','Fusion','Ecosport Storm','F-250','Cargo'],
+      'Nissan':       ['Kicks','Frontier','Versa','March','Sentra','X-Trail','Murano','Livina','Tiida','Leaf'],
+      'Jeep':         ['Renegade','Compass','Commander','Grand Cherokee','Wrangler','Cherokee'],
+      'Peugeot':      ['208','2008','308','3008','408','508','Partner','Boxer','207','307','Expert'],
+      'Citroën':      ['C3','C4 Cactus','C4','C5 Aircross','Jumpy','Berlingo','DS 3','C3 Aircross','Jumper'],
+      'Mitsubishi':   ['L200','L200 Triton','Eclipse Cross','Outlander','ASX','Pajero','Pajero Sport','Lancer'],
+      'Kia':          ['Sportage','Stonic','Carnival','Sorento','Telluride','Picanto','Cerato','Bongo','Soul','Niro','EV6'],
+      'BMW':          ['118i','120i','320i','328i','330i','X1','X2','X3','X4','X5','X6','M3','M4','Série 5','Série 7','iX'],
+      'Mercedes-Benz':['A 200','C 180','C 200','C 300','E 250','GLA','GLB','GLC','GLE','GLS','Sprinter','Vito','Classe A','Actros','Accelo'],
+      'Audi':         ['A1','A3','A4','A5','A6','Q3','Q5','Q7','Q8','TT','RS3','RS5','e-tron'],
+      'Volvo':        ['XC40','XC60','XC90','S60','S90','V60','C40 Recharge','FH'],
+      'Land Rover':   ['Range Rover Evoque','Range Rover Velar','Range Rover Sport','Range Rover','Discovery','Discovery Sport','Defender'],
+      'Subaru':       ['Impreza','Forester','Outback','XV','WRX','Crosstrek'],
+      'RAM':          ['1500','2500','3500','Rampage'],
+      'GWM':          ['Haval H6','Ora 03','Poer','Tank 300'],
+      'BYD':          ['Dolphin','Song Plan','Yuan Plus','Seal','King','Han'],
+      'Chery/Caoa Chery':['Tiggo 5X','Tiggo 7','Tiggo 8','Arrizo 6','QQ'],
+      'JAC':          ['T40','T50','T60','T80','iEV40'],
+      'Troller':      ['T4','Pantanal'],
+      'Iveco':        ['Daily','Tector','Stralis'],
+      'Yamaha (Moto)':['Factor 125','Factor 150','Fazer 150','Fazer 250','MT-03','MT-07','MT-09','Lander 250','Crosser 150','NMax 160','Xmax 250','Tenere 250','Neo 125','Biz'],
+      'Honda (Moto)': ['Biz 110','Biz 125','Pop 110','CG 160','CG 160 Titan','CG 160 Fan','CG 160 Start','CB 500','CB 500X','CB 650R','XRE 190','XRE 300','PCX','Elite 125','Hornet','Africa Twin','Bros 160'],
+      'Suzuki (Moto)':['GSX-S750','GSX-S1000','V-Strom 650','V-Strom 1050','Intruder 150','Burgman 125','Bandit 650'],
+      'Kawasaki (Moto)':['Ninja 300','Ninja 400','Ninja 650','Z400','Z650','Z900','Versys 650'],
+      'Shineray (Moto)':['SHI 175','Jet 50','Phoenix 50'],
+      'Utilitários':  ['VW Delivery','Mercedes Sprinter','Iveco Daily','Fiat Ducato','Ford Transit','Renault Master','Hyundai HR','VUC'],
     },
 
     _modalVeicEtapaAtual: 'marca',
     _marcaSelecionada: '',
+
+    // ── Marcas/modelos cadastrados manualmente pelo usuário (persistidos) ──
+    _custom: JSON.parse(localStorage.getItem('custom_marcas_modelos') || '{}'),
+
+    _salvarCustom() {
+      localStorage.setItem('custom_marcas_modelos', JSON.stringify(this._custom));
+    },
+
+    // Retorna a lista de marcas (padrão + customizadas), sem duplicar
+    _todasMarcas() {
+      return [...new Set([...Object.keys(this._marcasModelos), ...Object.keys(this._custom)])];
+    },
+
+    // Retorna os modelos de uma marca (padrão + customizados), sem duplicar
+    _modelosDaMarca(marca) {
+      const base = this._marcasModelos[marca] || [];
+      const custom = this._custom[marca] || [];
+      return [...new Set([...base, ...custom])];
+    },
 
     abrirModalMarca() {
       this._modalVeicEtapaAtual = 'marca';
@@ -7421,14 +7452,13 @@
 
     _renderizarMarcas(q) {
       const lista = document.getElementById('modal-mod-lista');
-      const ql = q.toLowerCase();
-      const marcas = Object.keys(this._marcasModelos).filter(m => !q || m.toLowerCase().includes(ql));
-      if (!marcas.length) {
-        lista.innerHTML = `<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhuma marca encontrada</div>`;
-        return;
-      }
-      lista.innerHTML = marcas.map(m => {
-        const qtd = this._marcasModelos[m].length;
+      const ql = q.trim().toLowerCase();
+      const todas = this._todasMarcas();
+      const marcas = todas.filter(m => !ql || m.toLowerCase().includes(ql));
+      const existeExata = todas.some(m => m.toLowerCase() === ql);
+
+      let html = marcas.map(m => {
+        const qtd = this._modelosDaMarca(m).length;
         return `<div onclick="buscaWiz._selecionarMarca('${m.replace(/'/g,"&#39;")}')"
           style="padding:13px 16px;font-size:13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;color:#e6edf3"
           onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background=''">
@@ -7436,6 +7466,30 @@
           <span style="font-size:11px;color:#8b949e">${qtd} modelos ›</span>
         </div>`;
       }).join('');
+
+      if (!marcas.length) {
+        html = `<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhuma marca encontrada</div>`;
+      }
+
+      // Opção de cadastrar nova marca quando não houver correspondência exata
+      if (ql.length >= 2 && !existeExata) {
+        html += `<div onclick="buscaWiz._cadastrarMarca('${q.trim().replace(/'/g,"&#39;")}')"
+          style="padding:13px 16px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--green-glow,#2ea043);font-weight:700;border-top:1px solid rgba(255,255,255,.08)"
+          onmouseover="this.style.background='rgba(46,160,67,.1)'" onmouseout="this.style.background=''">
+          <span style="font-size:16px;line-height:1">+</span> Cadastrar marca "${q.trim()}"
+        </div>`;
+      }
+
+      lista.innerHTML = html;
+    },
+
+    // Cadastra uma nova marca (sem modelos ainda) e vai direto para a etapa de modelo
+    _cadastrarMarca(nome) {
+      nome = (nome || '').trim();
+      if (!nome) return;
+      if (!this._custom[nome]) this._custom[nome] = [];
+      this._salvarCustom();
+      this._selecionarMarca(nome);
     },
 
     _selecionarMarca(marca) {
@@ -7447,19 +7501,44 @@
 
     _renderizarModelosDaMarca(q) {
       const lista = document.getElementById('modal-mod-lista');
-      const ql = q.toLowerCase();
-      const modelos = (this._marcasModelos[this._marcaSelecionada] || [])
-        .filter(m => !q || m.toLowerCase().includes(ql));
-      if (!modelos.length) {
-        lista.innerHTML = `<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum modelo encontrado</div>`;
-        return;
-      }
-      lista.innerHTML = modelos.map(m => `
+      const ql = q.trim().toLowerCase();
+      const todos = this._modelosDaMarca(this._marcaSelecionada);
+      const modelos = todos.filter(m => !ql || m.toLowerCase().includes(ql));
+      const existeExato = todos.some(m => m.toLowerCase() === ql);
+
+      let html = modelos.map(m => `
         <div onclick="buscaWiz.selecionarModelo('${m.replace(/'/g,"&#39;")}')"
           style="padding:13px 16px;font-size:13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.06);color:#e6edf3"
           onmouseover="this.style.background='rgba(255,255,255,.07)'" onmouseout="this.style.background=''">
           ${m}
         </div>`).join('');
+
+      if (!modelos.length) {
+        html = `<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-muted)">Nenhum modelo encontrado</div>`;
+      }
+
+      // Opção de cadastrar novo modelo quando não houver correspondência exata
+      if (ql.length >= 2 && !existeExato) {
+        html += `<div onclick="buscaWiz._cadastrarModelo('${q.trim().replace(/'/g,"&#39;")}')"
+          style="padding:13px 16px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--green-glow,#2ea043);font-weight:700;border-top:1px solid rgba(255,255,255,.08)"
+          onmouseover="this.style.background='rgba(46,160,67,.1)'" onmouseout="this.style.background=''">
+          <span style="font-size:16px;line-height:1">+</span> Cadastrar modelo "${q.trim()}"
+        </div>`;
+      }
+
+      lista.innerHTML = html;
+    },
+
+    // Cadastra um novo modelo para a marca selecionada e já o seleciona
+    _cadastrarModelo(nome) {
+      nome = (nome || '').trim();
+      if (!nome || !this._marcaSelecionada) return;
+      if (!this._custom[this._marcaSelecionada]) this._custom[this._marcaSelecionada] = [];
+      if (!this._custom[this._marcaSelecionada].some(m => m.toLowerCase() === nome.toLowerCase())) {
+        this._custom[this._marcaSelecionada].push(nome);
+        this._salvarCustom();
+      }
+      this.selecionarModelo(nome);
     },
 
     selecionarModelo(modelo) {
