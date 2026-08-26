@@ -4127,7 +4127,7 @@
           <label>Telefone</label>
           <input class="wiz-input" type="tel" id="wiz-tel" placeholder="(00) 00000-0000">
         </div>
-        <div class="wiz-field">
+        <div class="wiz-field" id="wiz-bloco-motivo">
           <label>Motivo da visita</label>
           <select class="wiz-input wiz-select" id="wiz-motivo">
             <option value="">Selecione o motivo...</option>
@@ -4151,6 +4151,18 @@
         <div class="wiz-field">
           <label>Veículo (opcional)</label>
           <div style="display:flex;flex-direction:column;gap:6px">
+            <!-- linha 0: tipo de veículo -->
+            <div class="wiz-type-btns" style="gap:6px">
+              <button type="button" class="wiz-type-btn active" id="wiz-veic-tipo-carro" onclick="buscaWiz.setVeicTipo('Carro',this)" style="flex:1;min-width:0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M5 17h14v-5l-2-5H7L5 12z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
+                Carro
+              </button>
+              <button type="button" class="wiz-type-btn" id="wiz-veic-tipo-moto" onclick="buscaWiz.setVeicTipo('Moto',this)" style="flex:1;min-width:0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><circle cx="5.5" cy="17.5" r="2.5"/><circle cx="18.5" cy="17.5" r="2.5"/><path d="M15 6h4l2 6.5M2 17.5h3.5M11 17.5h6M8 17.5l2.5-6.5h4L17 6"/></svg>
+                Moto
+              </button>
+            </div>
+            <input type="hidden" id="wiz-veic-tipo" value="Carro">
             <!-- linha 1: placa + cor -->
             <div style="display:flex;gap:6px">
               <input class="wiz-input" type="text" id="wiz-veic-placa" placeholder="Placa" style="flex:1;margin:0;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
@@ -7395,12 +7407,34 @@
       if (sel) sel.value = tipo;
     },
 
+    setVeicTipo(tipo, el) {
+      document.getElementById('wiz-veic-tipo').value = tipo;
+      document.getElementById('wiz-veic-tipo-carro').classList.toggle('active', tipo === 'Carro');
+      document.getElementById('wiz-veic-tipo-moto').classList.toggle('active', tipo === 'Moto');
+      // Marca/modelo já escolhidos não valem mais para o outro tipo de veículo
+      document.getElementById('wiz-veic-marca').value = '';
+      document.getElementById('wiz-veic-modelo').value = '';
+    },
+
     // ── Campo dinâmico de Empresa (Prestador) / App-Transportadora (Entrega) ──
     onTipoChange(tipo) {
       const blocoPrestador = document.getElementById('wiz-bloco-empresa-prestador');
       const blocoEntrega   = document.getElementById('wiz-bloco-empresa-entrega');
+      const blocoMotivo    = document.getElementById('wiz-bloco-motivo');
       if (blocoPrestador) blocoPrestador.style.display = tipo === 'Prestador' ? '' : 'none';
       if (blocoEntrega)   blocoEntrega.style.display   = tipo === 'Entrega'   ? '' : 'none';
+
+      // Motivo da visita só faz sentido para Visitante — para Prestador/Entrega o Tipo já deixa claro
+      const motivoSel = document.getElementById('wiz-motivo');
+      if (tipo === 'Prestador') {
+        if (blocoMotivo) blocoMotivo.style.display = 'none';
+        if (motivoSel) motivoSel.value = 'Prestação de serviço';
+      } else if (tipo === 'Entrega') {
+        if (blocoMotivo) blocoMotivo.style.display = 'none';
+        if (motivoSel) motivoSel.value = 'Entrega';
+      } else {
+        if (blocoMotivo) blocoMotivo.style.display = '';
+      }
 
       if (tipo === 'Prestador') {
         this.popularSelectEmpresa('wiz-sel-empresa-prestador', 'wiz_empresas_prestadoras', []);
@@ -7520,9 +7554,14 @@
       localStorage.setItem('custom_marcas_modelos', JSON.stringify(this._custom));
     },
 
-    // Retorna a lista de marcas (padrão + customizadas), sem duplicar
+    // Retorna a lista de marcas (padrão + customizadas), filtradas pelo tipo de veículo (Carro/Moto)
     _todasMarcas() {
-      return [...new Set([...Object.keys(this._marcasModelos), ...Object.keys(this._custom)])];
+      const veicTipo = document.getElementById('wiz-veic-tipo')?.value || 'Carro';
+      const todas = [...new Set([...Object.keys(this._marcasModelos), ...Object.keys(this._custom)])];
+      return todas.filter(m => {
+        const ehMoto = /\(Moto\)/i.test(m);
+        return veicTipo === 'Moto' ? ehMoto : !ehMoto;
+      });
     },
 
     // Retorna os modelos de uma marca (padrão + customizados), sem duplicar
@@ -7626,6 +7665,10 @@
     _cadastrarMarca(nome) {
       nome = (nome || '').trim();
       if (!nome) return;
+      // Marca a marca custom com o sufixo "(Moto)" quando cadastrada no modo Moto,
+      // para que a filtragem por tipo de veículo continue funcionando
+      const veicTipo = document.getElementById('wiz-veic-tipo')?.value || 'Carro';
+      if (veicTipo === 'Moto' && !/\(Moto\)/i.test(nome)) nome = nome + ' (Moto)';
       if (!this._custom[nome]) this._custom[nome] = [];
       this._salvarCustom();
       this._selecionarMarca(nome);
@@ -7988,8 +8031,12 @@
       });
       const selMotivo = document.getElementById('wiz-motivo'); if (selMotivo) selMotivo.value = '';
       document.getElementById('wiz-tipo-display').value = 'Visitante';
+      document.getElementById('wiz-veic-tipo').value = 'Carro';
+      document.getElementById('wiz-veic-tipo-carro')?.classList.add('active');
+      document.getElementById('wiz-veic-tipo-moto')?.classList.remove('active');
       document.getElementById('wiz-bloco-empresa-prestador').style.display = 'none';
       document.getElementById('wiz-bloco-empresa-entrega').style.display = 'none';
+      document.getElementById('wiz-bloco-motivo').style.display = '';
       document.getElementById('wiz-add-empresa-prestador').style.display = 'none';
       document.getElementById('wiz-add-app-entrega').style.display = 'none';
       document.getElementById('wiz-busca-resultado').style.display = 'none';
@@ -8001,8 +8048,6 @@
       const selUnid = document.getElementById('wiz-unidade-sel');
       if (selUnid) { selUnid.innerHTML = '<option value="">— primeiro o bloco —</option>'; selUnid.disabled = true; }
       this.removerFoto();
-      // Resetar tipo pessoa
-      document.querySelectorAll('.wiz-type-btn').forEach((b,i) => b.classList.toggle('active', i===0));
       // Resetar select de documento
       const docSel = document.getElementById('wiz-doc-select');
       if (docSel) docSel.value = 'Nome';
@@ -8055,6 +8100,9 @@
           document.getElementById('wiz-obs').value    = v.obs   || '';
           document.getElementById('wiz-veic-placa').value  = v.placa  || placa;
           document.getElementById('wiz-veic-modelo').value = v.modelo || '';
+          document.getElementById('wiz-veic-tipo').value = v.veiculo_tipo || 'Carro';
+          document.getElementById('wiz-veic-tipo-carro')?.classList.toggle('active', (v.veiculo_tipo || 'Carro') === 'Carro');
+          document.getElementById('wiz-veic-tipo-moto')?.classList.toggle('active', v.veiculo_tipo === 'Moto');
           document.getElementById('wiz-tipo-display').value = v.tipo || wizTipoPessoa;
           document.getElementById('wiz-empresa').value = v.empresa || '';
           buscaWiz.onTipoChange(v.tipo || wizTipoPessoa);
@@ -8120,6 +8168,7 @@
       const rg       = document.getElementById('wiz-rg').value.trim();
       const email    = document.getElementById('wiz-email').value.trim();
       const placa    = (document.getElementById('wiz-veic-placa').value || document.getElementById('wiz-placa').value || '').trim().toUpperCase();
+      const veicTipo = document.getElementById('wiz-veic-tipo')?.value || 'Carro';
       const marca    = document.getElementById('wiz-veic-marca')?.value.trim() || '';
       const modelo   = document.getElementById('wiz-veic-modelo').value.trim();
       const cor      = document.getElementById('wiz-veic-cor').value.trim();
@@ -8160,7 +8209,7 @@
       const novoId = Date.now();
       const novoVisit = {
         id: novoId, nome, doc, doc_tipo, email, tel,
-        placa, modelo: (marca ? marca + ' ' : '') + modelo + (cor ? ' ' + cor : ''),
+        placa, veiculo_tipo: veicTipo, modelo: (marca ? marca.replace(/\s*\(Moto\)/i,'') + ' ' : '') + modelo + (cor ? ' ' + cor : ''),
         empresa, cnpj, bloco, unidade, anfitriao: anfitr,
         motivo, tipo, status: 'dentro',
         entrada: dataBr + ' ' + horaStr, saida: '',
