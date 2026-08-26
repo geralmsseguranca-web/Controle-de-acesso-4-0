@@ -6584,11 +6584,12 @@
                 </div>
                 <div class="field">
                   <label>Unidade <span class="req">*</span></label>
-                  <select id="f-unidade">
+                  <select id="f-unidade" onchange="moradores._onUnidadeChange(this.value)">
                     ${unidOpts}
                   </select>
                 </div>
               </div>
+              <div id="unidade-vinculo-info"></div>
             </div>
           </div>
         </div>
@@ -6628,6 +6629,7 @@
           <button class="btn btn-secondary" onclick="moradores.cancelar()">Cancelar</button>
         </div>
       `;
+      this._renderVinculoInfo(blocoAtual, m.unidade || (unidsBloco[0] && unidsBloco[0].numero) || '');
     },
 
     _onBlocoChange(bloco) {
@@ -6637,6 +6639,36 @@
       sel.innerHTML = unids.length
         ? unids.map(u => `<option value="${u.numero}">${u.numero}</option>`).join('')
         : '<option value="">— sem unidades —</option>';
+      this._renderVinculoInfo(bloco, sel.value);
+    },
+
+    _onUnidadeChange(unidade) {
+      const bloco = document.getElementById('f-bloco')?.value;
+      this._renderVinculoInfo(bloco, unidade);
+    },
+
+    // Mostra, em tempo real, todos os moradores já vinculados à unidade/torre
+    // selecionada — histórico de ocupação e alerta se já existe um titular.
+    _renderVinculoInfo(bloco, unidade) {
+      const el = document.getElementById('unidade-vinculo-info');
+      if (!el) return;
+      if (!bloco || !unidade) { el.innerHTML = ''; return; }
+      const vinculados = morDB.filter(m => m.bloco === bloco && m.unidade === unidade && (!morSelected || m.id !== morSelected.id));
+      const titularAtivo = vinculados.find(m => m.perfil === 'Titular' && m.ativo);
+      el.innerHTML = `
+        <div style="margin-top:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px">
+            👥 Histórico de vínculos — Unidade ${unidade} · Bloco/Torre ${bloco} (${vinculados.length})
+          </div>
+          ${titularAtivo ? `<div style="font-size:11px;color:#d97706;font-weight:700;margin-bottom:6px">⚠ Já existe um titular ativo: ${titularAtivo.nome}. Só é permitido 1 titular por unidade.</div>` : ''}
+          ${vinculados.length ? `<div style="display:flex;flex-direction:column;gap:2px">${vinculados.map(m => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px;border-top:1px solid var(--border)">
+              <span>${m.nome} <span style="color:var(--text-muted)">— ${m.perfil}</span></span>
+              <span style="color:${m.ativo?'var(--green-glow)':'var(--red)'}">${m.ativo?'● Ativo':'● Inativo'}</span>
+            </div>
+          `).join('')}</div>` : `<div style="font-size:11px;color:var(--text-muted)">Nenhum morador vinculado ainda a esta unidade.</div>`}
+        </div>
+      `;
     },
 
     renderVeiculos() {
@@ -6776,15 +6808,41 @@
       const cpf     = document.getElementById('f-cpf')?.value.trim();
       const bloco   = document.getElementById('f-bloco')?.value;
       const unidade = document.getElementById('f-unidade')?.value;
+      const perfil  = document.getElementById('f-perfil')?.value;
       if (!nome)    { showToast('Nome é obrigatório.', 'err'); return; }
       if (!bloco)   { showToast('Bloco é obrigatório.', 'err'); return; }
       if (!unidade) { showToast('Unidade é obrigatória.', 'err'); return; }
+
+      // Regra: apenas 1 titular ativo por unidade
+      if (perfil === 'Titular') {
+        const outroTitular = morDB.find(m =>
+          m.bloco === bloco && m.unidade === unidade && m.perfil === 'Titular' && m.ativo &&
+          (!morSelected || m.id !== morSelected.id)
+        );
+        if (outroTitular) {
+          document.getElementById('confirm-msg').textContent =
+            `A unidade ${unidade} (Bloco/Torre ${bloco}) já possui um titular: ${outroTitular.nome}. ` +
+            `Deseja substituir? ${outroTitular.nome.split(' ')[0]} passará automaticamente para o perfil "Dependente".`;
+          document.getElementById('confirm-modal').classList.add('open');
+          document.getElementById('confirm-ok-btn').onclick = () => {
+            outroTitular.perfil = 'Dependente';
+            document.getElementById('confirm-modal').classList.remove('open');
+            this._salvarConfirmado(nome, cpf, bloco, unidade, perfil);
+          };
+          return;
+        }
+      }
+      this._salvarConfirmado(nome, cpf, bloco, unidade, perfil);
+    },
+
+    _salvarConfirmado(nome, cpf, bloco, unidade, perfil) {
+      const anterior = (morMode !== 'new' && morSelected) ? { bloco: morSelected.bloco, unidade: morSelected.unidade } : null;
       const data = {
         nome, cpf,
         rg:      document.getElementById('f-rg')?.value.trim(),
         bloco,
         unidade,
-        perfil:  document.getElementById('f-perfil')?.value,
+        perfil,
         ativo:   document.getElementById('f-ativo')?.value === '1',
         tel:     document.getElementById('f-tel')?.value.trim(),
         cel:     document.getElementById('f-cel')?.value.trim(),
@@ -6797,22 +6855,44 @@
         data.cadastro = new Date().toLocaleDateString('pt-BR');
         morDB.push(data);
         morSelected = data;
-        showToast('Morador cadastrado com sucesso!', 'ok');
+        showToast('Morador cadastrado e vinculado à unidade com sucesso!', 'ok');
       } else {
         Object.assign(morSelected, data);
         showToast('Dados atualizados com sucesso!', 'ok');
       }
+      this._sincronizarTitularUnidade(anterior);
       saveDB();
+      saveUnidDB();
       morMode = 'view';
       this.renderList();
       this.enableButtons(true);
       this.renderDados();
     },
 
+    // Sincroniza unidDB.titular_id com o morador Titular ativo vinculado à unidade,
+    // e limpa o vínculo antigo caso o morador tenha trocado de unidade/torre.
+    _sincronizarTitularUnidade(anterior) {
+      const m = morSelected;
+      if (!m) return;
+      if (anterior && (anterior.bloco !== m.bloco || anterior.unidade !== m.unidade)) {
+        const unidAnterior = unidDB.find(u => u.bloco === anterior.bloco && u.numero === anterior.unidade);
+        if (unidAnterior && unidAnterior.titular_id === m.id) unidAnterior.titular_id = null;
+      }
+      const unidAtual = unidDB.find(u => u.bloco === m.bloco && u.numero === m.unidade);
+      if (!unidAtual) return;
+      if (m.perfil === 'Titular' && m.ativo) {
+        unidAtual.titular_id = m.id;
+      } else if (unidAtual.titular_id === m.id) {
+        unidAtual.titular_id = null;
+      }
+    },
+
     toggleAtivo() {
       if (!morSelected) return;
       morSelected.ativo = !morSelected.ativo;
+      this._sincronizarTitularUnidade(null);
       saveDB();
+      saveUnidDB();
       showToast(morSelected.ativo ? 'Morador ativado.' : 'Morador inativado.', 'ok');
       this.renderList();
       this.renderDados();
@@ -6823,9 +6903,12 @@
       document.getElementById('confirm-msg').textContent = `Excluir "${morSelected.nome}"? Esta ação não pode ser desfeita.`;
       document.getElementById('confirm-modal').classList.add('open');
       document.getElementById('confirm-ok-btn').onclick = () => {
+        const unidVinc = unidDB.find(u => u.bloco === morSelected.bloco && u.numero === morSelected.unidade);
+        if (unidVinc && unidVinc.titular_id === morSelected.id) unidVinc.titular_id = null;
         morDB = morDB.filter(m => m.id !== morSelected.id);
         morSelected = null;
         saveDB();
+        saveUnidDB();
         document.getElementById('confirm-modal').classList.remove('open');
         document.getElementById('detail-tabs').style.display = 'none';
         document.getElementById('detail-content').innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="7" r="4"/><path d="M5 21c0-4 3.1-7 7-7s7 3 7 7"/></svg><h3>Nenhum morador selecionado</h3><p>Selecione um morador na lista ou clique em <strong>Novo Morador</strong>.</p></div>`;
@@ -7207,10 +7290,10 @@
           </div>
           <div class="form-grid cols-3">
             <div class="field"><label>Número / Identificação <span class="req">*</span></label>
-              <input type="text" id="fu-numero" value="${u.numero||''}" placeholder="101 / Casa 1 / Loja A">
+              <input type="text" id="fu-numero" value="${u.numero||''}" placeholder="101 / Casa 1 / Loja A" oninput="unidades._onIdentChange()">
             </div>
             <div class="field"><label>Bloco / Torre <span class="req">*</span></label>
-              <input type="text" id="fu-bloco" value="${u.bloco||''}" placeholder="A / B / Térreo">
+              <input type="text" id="fu-bloco" value="${u.bloco||''}" placeholder="A / B / Térreo" oninput="unidades._onIdentChange()">
             </div>
             <div class="field"><label>Tipo <span class="req">*</span></label>
               <select id="fu-tipo">
@@ -7229,13 +7312,21 @@
             <div class="field"><label>Qtde. Vagas Garagem</label>
               <input type="number" id="fu-vagas" value="${u.vagas||0}" placeholder="1" min="0" max="20">
             </div>
-            <div class="field form-full"><label>Titular (ID do Morador)</label>
+            <div class="field form-full"><label>Titular</label>
               <select id="fu-titular">
                 <option value="">— Sem titular —</option>
-                ${morDB.filter(m=>m.ativo && m.perfil==='Titular').map(m =>
-                  `<option value="${m.id}" ${u.titular_id===m.id?'selected':''}>${m.nome} (Un.${m.unidade})</option>`
+                ${morDB.filter(m => m.bloco === (u.bloco||'') && m.unidade === (u.numero||'')).map(m =>
+                  `<option value="${m.id}" ${u.titular_id===m.id?'selected':''}>${m.nome} (${m.perfil}${m.ativo?'':' · inativo'})</option>`
                 ).join('')}
               </select>
+              <div id="unidade-titular-vinculo-info" style="margin-top:6px;font-size:11px;color:var(--text-muted)">
+                ${(() => {
+                  const vinc = morDB.filter(m => m.bloco === (u.bloco||'') && m.unidade === (u.numero||''));
+                  return vinc.length
+                    ? `${vinc.length} morador(es) vinculado(s) a esta unidade: ${vinc.map(m=>`${m.nome} (${m.perfil}${m.ativo?'':' · inativo'})`).join(', ')}`
+                    : 'Nenhum morador vinculado ainda. Cadastre o morador na aba Moradores primeiro para poder defini-lo como titular aqui.';
+                })()}
+              </div>
             </div>
             <div class="field form-full"><label>Observações</label>
               <textarea id="fu-obs">${u.obs||''}</textarea>
@@ -7250,6 +7341,27 @@
           <button class="btn btn-secondary" onclick="unidades.cancelar()">Cancelar</button>
         </div>
       `;
+    },
+
+    // Atualiza dinamicamente a lista de possíveis titulares e o histórico de
+    // vinculados conforme o usuário digita o número/bloco da unidade.
+    _onIdentChange() {
+      const bloco  = document.getElementById('fu-bloco')?.value.trim();
+      const numero = document.getElementById('fu-numero')?.value.trim();
+      const titularAtualId = unidSelected?.titular_id || null;
+      const vinculados = (bloco && numero) ? morDB.filter(m => m.bloco === bloco && m.unidade === numero) : [];
+      const selEl = document.getElementById('fu-titular');
+      if (selEl) {
+        const valorAtual = selEl.value;
+        selEl.innerHTML = `<option value="">— Sem titular —</option>` +
+          vinculados.map(m => `<option value="${m.id}" ${String(m.id)===valorAtual || (!valorAtual && titularAtualId===m.id)?'selected':''}>${m.nome} (${m.perfil}${m.ativo?'':' · inativo'})</option>`).join('');
+      }
+      const infoEl = document.getElementById('unidade-titular-vinculo-info');
+      if (infoEl) {
+        infoEl.textContent = vinculados.length
+          ? `${vinculados.length} morador(es) vinculado(s) a esta unidade: ${vinculados.map(m=>`${m.nome} (${m.perfil}${m.ativo?'':' · inativo'})`).join(', ')}`
+          : 'Nenhum morador vinculado ainda. Cadastre o morador na aba Moradores primeiro para poder defini-lo como titular aqui.';
+      }
     },
 
     nova() {
@@ -7287,12 +7399,25 @@
       if (!numero) { showToast('Número/Identificação é obrigatório.', 'err'); return; }
       if (!bloco)  { showToast('Bloco/Torre é obrigatório.', 'err'); return; }
       const tid_raw = document.getElementById('fu-titular')?.value;
+      const novoTitularId = tid_raw ? parseInt(tid_raw) : null;
+
+      // Só é permitido definir como titular um morador já vinculado a esta unidade
+      if (novoTitularId) {
+        const candidato = morDB.find(m => m.id === novoTitularId);
+        if (!candidato || candidato.bloco !== bloco || candidato.unidade !== numero) {
+          showToast('O titular selecionado precisa estar vinculado a esta unidade.', 'err');
+          return;
+        }
+      }
+
+      const anteriorTitularId = unidMode !== 'new' ? (unidSelected?.titular_id || null) : null;
+
       const data = {
         numero, bloco, tipo,
         area:    parseInt(document.getElementById('fu-area')?.value)||0,
         quartos: parseInt(document.getElementById('fu-quartos')?.value)||0,
         vagas:   parseInt(document.getElementById('fu-vagas')?.value)||0,
-        titular_id: tid_raw ? parseInt(tid_raw) : null,
+        titular_id: novoTitularId,
         obs:     document.getElementById('fu-obs')?.value.trim(),
         ativo:   true,
       };
@@ -7309,6 +7434,16 @@
         unidSelected.vagas_garagem = prev;
         showToast('Unidade atualizada com sucesso!', 'ok');
       }
+
+      // Sincroniza perfil dos moradores: só 1 titular ativo por unidade
+      if (novoTitularId && novoTitularId !== anteriorTitularId) {
+        const novoTitular = morDB.find(m => m.id === novoTitularId);
+        if (novoTitular) novoTitular.perfil = 'Titular';
+        morDB.filter(m => m.bloco === bloco && m.unidade === numero && m.perfil === 'Titular' && m.id !== novoTitularId)
+          .forEach(m => m.perfil = 'Dependente');
+        saveDB();
+      }
+
       saveUnidDB();
       unidMode = 'view';
       this.renderList();
