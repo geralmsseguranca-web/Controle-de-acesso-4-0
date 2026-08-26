@@ -4080,11 +4080,43 @@
 
         <div class="wiz-field">
           <label>Tipo de registro *</label>
-          <select class="wiz-input wiz-select" id="wiz-tipo-display" style="font-weight:700">
+          <select class="wiz-input wiz-select" id="wiz-tipo-display" style="font-weight:700" onchange="buscaWiz.onTipoChange(this.value)">
             <option value="Visitante">Visitante</option>
             <option value="Prestador">Prestador de serviço</option>
             <option value="Entrega">Entrega</option>
           </select>
+        </div>
+
+        <!-- Empresa do prestador (só aparece quando Tipo = Prestador) -->
+        <div class="wiz-field" id="wiz-bloco-empresa-prestador" style="display:none">
+          <label>Empresa</label>
+          <select class="wiz-input wiz-select" id="wiz-sel-empresa-prestador"
+            onchange="buscaWiz.onSelectEmpresa('wiz-sel-empresa-prestador','wiz-add-empresa-prestador','wiz-empresa')">
+            <option value="">Selecione...</option>
+            <option value="__nova__">+ Cadastrar nova empresa...</option>
+          </select>
+          <div id="wiz-add-empresa-prestador" style="display:none;gap:8px;margin-top:8px">
+            <input class="wiz-input" type="text" id="wiz-input-nova-empresa-prestador" placeholder="Nome da empresa" style="flex:1;margin:0"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();buscaWiz.confirmarNovaEmpresa('wiz-input-nova-empresa-prestador','wiz-sel-empresa-prestador','wiz_empresas_prestadoras','wiz-add-empresa-prestador');}">
+            <button type="button" class="btn btn-primary" style="flex-shrink:0;font-size:12px;padding:0 14px"
+              onclick="buscaWiz.confirmarNovaEmpresa('wiz-input-nova-empresa-prestador','wiz-sel-empresa-prestador','wiz_empresas_prestadoras','wiz-add-empresa-prestador')">Adicionar</button>
+          </div>
+        </div>
+
+        <!-- App/transportadora da entrega (só aparece quando Tipo = Entrega) -->
+        <div class="wiz-field" id="wiz-bloco-empresa-entrega" style="display:none">
+          <label>Aplicativo / Transportadora</label>
+          <select class="wiz-input wiz-select" id="wiz-sel-app-entrega"
+            onchange="buscaWiz.onSelectEmpresa('wiz-sel-app-entrega','wiz-add-app-entrega','wiz-empresa')">
+            <option value="">Selecione...</option>
+            <option value="__nova__">+ Cadastrar novo...</option>
+          </select>
+          <div id="wiz-add-app-entrega" style="display:none;gap:8px;margin-top:8px">
+            <input class="wiz-input" type="text" id="wiz-input-novo-app-entrega" placeholder="Nome do app/transportadora" style="flex:1;margin:0"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();buscaWiz.confirmarNovaEmpresa('wiz-input-novo-app-entrega','wiz-sel-app-entrega','wiz_apps_entrega','wiz-add-app-entrega');}">
+            <button type="button" class="btn btn-primary" style="flex-shrink:0;font-size:12px;padding:0 14px"
+              onclick="buscaWiz.confirmarNovaEmpresa('wiz-input-novo-app-entrega','wiz-sel-app-entrega','wiz_apps_entrega','wiz-add-app-entrega')">Adicionar</button>
+          </div>
         </div>
 
         <div class="wiz-field">
@@ -7363,6 +7395,77 @@
       if (sel) sel.value = tipo;
     },
 
+    // ── Campo dinâmico de Empresa (Prestador) / App-Transportadora (Entrega) ──
+    onTipoChange(tipo) {
+      const blocoPrestador = document.getElementById('wiz-bloco-empresa-prestador');
+      const blocoEntrega   = document.getElementById('wiz-bloco-empresa-entrega');
+      if (blocoPrestador) blocoPrestador.style.display = tipo === 'Prestador' ? '' : 'none';
+      if (blocoEntrega)   blocoEntrega.style.display   = tipo === 'Entrega'   ? '' : 'none';
+
+      if (tipo === 'Prestador') {
+        this.popularSelectEmpresa('wiz-sel-empresa-prestador', 'wiz_empresas_prestadoras', []);
+        document.getElementById('wiz-add-empresa-prestador').style.display = 'none';
+      } else if (tipo === 'Entrega') {
+        this.popularSelectEmpresa('wiz-sel-app-entrega', 'wiz_apps_entrega', typeof ENTR_TRANS !== 'undefined' ? ENTR_TRANS : ['iFood','Mercado Livre','Amazon','Rappi','Shopee','Correios','Magazine Luiza','Motoboy','Outro']);
+        document.getElementById('wiz-add-app-entrega').style.display = 'none';
+      } else {
+        // Visitante: limpa o campo empresa, não se aplica
+        document.getElementById('wiz-empresa').value = '';
+      }
+    },
+
+    _listaWizEmpresas(key, defaults) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return (defaults || []).slice();
+    },
+
+    _salvarWizEmpresas(key, lista) {
+      localStorage.setItem(key, JSON.stringify(lista));
+    },
+
+    popularSelectEmpresa(selectId, key, defaults) {
+      const sel = document.getElementById(selectId);
+      if (!sel) return;
+      const lista = this._listaWizEmpresas(key, defaults);
+      const atual = document.getElementById('wiz-empresa')?.value || '';
+      sel.innerHTML = '<option value="">Selecione...</option>' +
+        lista.map(e => `<option value="${e.replace(/"/g,'&quot;')}">${e}</option>`).join('') +
+        '<option value="__nova__">+ Cadastrar nova' + (key === 'wiz_apps_entrega' ? '...' : ' empresa...') + '</option>';
+      if (atual && lista.includes(atual)) sel.value = atual;
+    },
+
+    onSelectEmpresa(selectId, addWrapId, hiddenFieldId) {
+      const sel  = document.getElementById(selectId);
+      const wrap = document.getElementById(addWrapId);
+      if (sel.value === '__nova__') {
+        wrap.style.display = 'flex';
+        setTimeout(() => document.getElementById(wrap.querySelector('input').id)?.focus(), 50);
+      } else {
+        wrap.style.display = 'none';
+        document.getElementById(hiddenFieldId).value = sel.value;
+      }
+    },
+
+    confirmarNovaEmpresa(inputId, selectId, key, addWrapId) {
+      const input = document.getElementById(inputId);
+      const nome = (input.value || '').trim();
+      if (!nome) return;
+      const defaults = key === 'wiz_apps_entrega' && typeof ENTR_TRANS !== 'undefined' ? ENTR_TRANS : [];
+      const lista = this._listaWizEmpresas(key, defaults);
+      if (!lista.some(e => e.toLowerCase() === nome.toLowerCase())) {
+        lista.push(nome);
+        this._salvarWizEmpresas(key, lista);
+      }
+      this.popularSelectEmpresa(selectId, key, defaults);
+      document.getElementById(selectId).value = nome;
+      document.getElementById('wiz-empresa').value = nome;
+      input.value = '';
+      document.getElementById(addWrapId).style.display = 'none';
+    },
+
     limparBusca() {
       document.getElementById('wiz-doc-input').value = '';
       document.getElementById('wiz-busca-resultado').style.display = 'none';
@@ -7885,6 +7988,10 @@
       });
       const selMotivo = document.getElementById('wiz-motivo'); if (selMotivo) selMotivo.value = '';
       document.getElementById('wiz-tipo-display').value = 'Visitante';
+      document.getElementById('wiz-bloco-empresa-prestador').style.display = 'none';
+      document.getElementById('wiz-bloco-empresa-entrega').style.display = 'none';
+      document.getElementById('wiz-add-empresa-prestador').style.display = 'none';
+      document.getElementById('wiz-add-app-entrega').style.display = 'none';
       document.getElementById('wiz-busca-resultado').style.display = 'none';
       const hint = document.getElementById('wiz-busca-hint'); if (hint) hint.style.display = 'none';
       document.getElementById('wiz-resumo').style.display = 'none';
@@ -7948,7 +8055,10 @@
           document.getElementById('wiz-obs').value    = v.obs   || '';
           document.getElementById('wiz-veic-placa').value  = v.placa  || placa;
           document.getElementById('wiz-veic-modelo').value = v.modelo || '';
-          document.getElementById('wiz-tipo-display').value = wizTipoPessoa;
+          document.getElementById('wiz-tipo-display').value = v.tipo || wizTipoPessoa;
+          document.getElementById('wiz-empresa').value = v.empresa || '';
+          buscaWiz.onTipoChange(v.tipo || wizTipoPessoa);
+          setTimeout(() => { if (v.empresa) { const s = document.getElementById((v.tipo||wizTipoPessoa)==='Entrega' ? 'wiz-sel-app-entrega' : 'wiz-sel-empresa-prestador'); if (s) s.value = v.empresa; } }, 0);
           if (v.foto) {
             document.getElementById('wiz-foto-preview').innerHTML = `<img src="${v.foto}">`;
             document.getElementById('wiz-foto-data').value = v.foto;
@@ -7973,6 +8083,7 @@
           // Pre-set veiculo placa
           document.getElementById('wiz-veic-placa').value = document.getElementById('wiz-placa').value;
           document.getElementById('wiz-tipo-display').value = wizTipoPessoa;
+          buscaWiz.onTipoChange(wizTipoPessoa);
         }
         this._goEtapa(2);
         // Nome já veio preenchido (encontrado ou digitado) -> foco vai direto para o próximo campo vazio
