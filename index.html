@@ -6308,6 +6308,15 @@
 
   function saveDB() { localStorage.setItem('mor_db', JSON.stringify(morDB)); atualizarSidebar(); }
 
+  // ── Log de movimentações (entrada/saída manual) dos moradores ──
+  let morMovDB = JSON.parse(localStorage.getItem('mor_mov_db') || '[]');
+  function saveMorMovDB() { localStorage.setItem('mor_mov_db', JSON.stringify(morMovDB)); }
+  function getStatusMorador(moradorId) {
+    const movs = morMovDB.filter(h => h.morador_id === moradorId).sort((a,b) => (b.id||0) - (a.id||0));
+    const ultimo = movs[0];
+    return { dentro: !!ultimo && ultimo.tipo === 'Entrada', ultimo };
+  }
+
   function showToast(msg, type='ok') {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -6463,6 +6472,7 @@
     renderDados() {
       const m = morSelected;
       if (!m) return;
+      const statusMor = getStatusMorador(m.id);
       const perfilClass = `perfil-${m.perfil}`;
       document.getElementById('detail-content').innerHTML = `
         <div class="form-section">
@@ -6486,9 +6496,12 @@
               <div style="font-size:11px;color:var(--text-muted)">
                 Cadastrado em <strong style="color:var(--text)">${m.cadastro}</strong>
               </div>
-              <div style="display:flex;gap:6px;margin-top:4px">
+              <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
                 <span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;${m.ativo?'background:rgba(46,160,67,.15);color:var(--green-glow);border:1px solid var(--green-dim)':'background:rgba(218,54,51,.1);color:var(--red);border:1px solid rgba(218,54,51,.3)'}">
                   ${m.ativo ? '● ATIVO' : '● INATIVO'}
+                </span>
+                <span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;${statusMor.dentro?'background:rgba(46,160,67,.15);color:var(--green-glow);border:1px solid var(--green-dim)':'background:var(--surface2);color:var(--text-muted);border:1px solid var(--border)'}">
+                  ${statusMor.dentro ? '🟢 NO CONDOMÍNIO' : '⚫ FORA DO CONDOMÍNIO'}
                 </span>
               </div>
             </div>
@@ -6531,6 +6544,10 @@
           <button class="btn btn-accent" onclick="moradores.switchTab(null,'veiculos')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
             Ver Veículos (${m.veiculos.length})
+          </button>
+          <button class="btn ${statusMor.dentro?'btn-danger':'btn-secondary'}" onclick="moradores.switchTab(null,'historico')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            ${statusMor.dentro ? '🟢 Dentro · Registrar Saída' : '⚫ Fora · Registrar Entrada'}
           </button>
         </div>
       `;
@@ -6736,16 +6753,30 @@
     },
 
     renderHistorico() {
-      const historico = [
-        { tipo:'Entrada', local:'Portaria Principal', data:'13/06/2026 05:12', obs:'Autorizado' },
-        { tipo:'Entrada', local:'Portaria Principal', data:'12/06/2026 18:34', obs:'Autorizado' },
-        { tipo:'Saída',   local:'Portaria Principal', data:'12/06/2026 07:00', obs:'Registrado' },
-        { tipo:'Entrada', local:'Portaria Principal', data:'11/06/2026 20:15', obs:'Autorizado' },
-        { tipo:'Saída',   local:'Portaria Principal', data:'11/06/2026 08:10', obs:'Registrado' },
-      ];
+      const m = morSelected;
+      if (!m) return;
+      const historico = morMovDB.filter(h => h.morador_id === m.id).slice().sort((a,b) => (b.id||0) - (a.id||0));
+      const { dentro, ultimo } = getStatusMorador(m.id);
       document.getElementById('detail-content').innerHTML = `
-        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">Últimas movimentações</div>
-        <div class="historico-list">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--text)">Movimentações de ${m.nome.split(' ')[0]}</div>
+            <div style="font-size:11px;margin-top:2px;color:${dentro?'var(--green-glow)':'var(--text-muted)'}">
+              ${dentro ? `🟢 No condomínio desde ${ultimo.data}` : (ultimo ? `⚫ Fora do condomínio · última saída ${ultimo.data}` : '⚫ Sem registros de movimentação')}
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" ${dentro?'disabled':''} onclick="moradores.registrarMovimento('Entrada')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M15 3h6v18h-6"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              Registrar Entrada
+            </button>
+            <button class="btn btn-secondary" ${!dentro?'disabled':''} onclick="moradores.registrarMovimento('Saída')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 21H3V3h6"/><polyline points="14 17 9 12 14 7"/><line x1="9" y1="12" x2="21" y2="12"/></svg>
+              Registrar Saída
+            </button>
+          </div>
+        </div>
+        ${historico.length ? `<div class="historico-list">
           ${historico.map(h => `
             <div class="hist-item">
               <div class="hist-icon ${h.tipo==='Entrada'?'entrada':'saida'}">
@@ -6754,12 +6785,37 @@
                 </svg>
               </div>
               <div class="hist-info">
-                <div class="hist-tipo">${h.tipo} · ${h.local}</div>
-                <div class="hist-meta">${h.data} · ${h.obs}</div>
+                <div class="hist-tipo">${h.tipo} · ${h.local||'Portaria Principal'}</div>
+                <div class="hist-meta">${h.data} · ${h.obs||'Registro manual'}</div>
               </div>
+              <button class="btn btn-danger" style="padding:3px 8px;font-size:10px;flex-shrink:0" onclick="moradores.excluirMovimento(${h.id})">Excluir</button>
             </div>`).join('')}
-        </div>
+        </div>` : `<div class="empty-state" style="height:160px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <p>Nenhuma movimentação registrada para este morador.</p>
+        </div>`}
       `;
+    },
+
+    registrarMovimento(tipo) {
+      const m = morSelected;
+      if (!m) return;
+      const { dentro } = getStatusMorador(m.id);
+      if (tipo === 'Entrada' && dentro) { showToast('Este morador já está registrado como dentro.', 'err'); return; }
+      if (tipo === 'Saída' && !dentro)  { showToast('Este morador não está registrado como dentro.', 'err'); return; }
+      const agora = new Date();
+      const data = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+      morMovDB.push({ id: Date.now(), morador_id: m.id, tipo, local: 'Portaria Principal', data, obs: 'Registro manual' });
+      saveMorMovDB();
+      showToast(`${tipo} registrada para ${m.nome.split(' ')[0]}.`, 'ok');
+      this.renderHistorico();
+    },
+
+    excluirMovimento(id) {
+      morMovDB = morMovDB.filter(h => h.id !== id);
+      saveMorMovDB();
+      showToast('Registro removido.', 'ok');
+      this.renderHistorico();
     },
 
     switchTab(el, tab) {
@@ -7250,11 +7306,41 @@
     renderHistorico() {
       const u = unidSelected;
       if (!u) return;
-      // Busca histórico real de visitDB filtrado pela unidade
-      const historico = (typeof visitDB !== 'undefined' ? visitDB : [])
+
+      // Visitas/prestadores/entregas vinculados à unidade
+      const visitas = (typeof visitDB !== 'undefined' ? visitDB : [])
         .filter(v => v.unidade === u.numero && v.bloco === u.bloco)
-        .slice().sort((a, b) => (b.id || 0) - (a.id || 0))
+        .map(v => ({
+          origem: 'visitante',
+          nome: v.nome,
+          tipo: v.status !== 'saiu' ? 'Entrada' : 'Saída',
+          data: v.entrada || v.saida || '',
+          meta: `${v.motivo || 'Visita'} · Anfitrião: ${v.anfitriao || '—'}`,
+          sortKey: v.id || 0,
+        }));
+
+      // Entradas/saídas manuais de moradores atualmente vinculados a esta unidade
+      const idsMoradoresUnidade = (typeof morDB !== 'undefined' ? morDB : [])
+        .filter(m => m.bloco === u.bloco && m.unidade === u.numero)
+        .map(m => m.id);
+      const movsMoradores = (typeof morMovDB !== 'undefined' ? morMovDB : [])
+        .filter(h => idsMoradoresUnidade.includes(h.morador_id))
+        .map(h => {
+          const m = morDB.find(mm => mm.id === h.morador_id);
+          return {
+            origem: 'morador',
+            nome: m ? m.nome : 'Morador',
+            tipo: h.tipo,
+            data: h.data,
+            meta: `${h.local || 'Portaria Principal'} · ${h.obs || 'Registro manual'}`,
+            sortKey: h.id || 0,
+          };
+        });
+
+      const historico = [...visitas, ...movsMoradores]
+        .sort((a, b) => b.sortKey - a.sortKey)
         .slice(0, 20);
+
       document.getElementById('unid-detail-content').innerHTML = `
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">
           Últimas movimentações · Unidade ${u.numero}
@@ -7263,19 +7349,22 @@
         ${historico.length ? `<div class="historico-list">
           ${historico.map(h => `
             <div class="hist-item">
-              <div class="hist-icon ${h.status === 'dentro' || h.status === 'aguard' ? 'entrada' : 'saida'}">
+              <div class="hist-icon ${h.tipo === 'Entrada' ? 'entrada' : 'saida'}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  ${h.status !== 'saiu' ? '<path d="M15 3h6v18h-6"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>' : '<path d="M9 21H3V3h6"/><polyline points="14 17 9 12 14 7"/><line x1="9" y1="12" x2="21" y2="12"/>'}
+                  ${h.tipo === 'Entrada' ? '<path d="M15 3h6v18h-6"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>' : '<path d="M9 21H3V3h6"/><polyline points="14 17 9 12 14 7"/><line x1="9" y1="12" x2="21" y2="12"/>'}
                 </svg>
               </div>
               <div class="hist-info">
-                <div class="hist-tipo">${h.status !== 'saiu' ? 'Entrada' : 'Saída'} · ${h.nome}</div>
-                <div class="hist-meta">${h.entrada || '—'} · ${h.motivo || 'Visita'} · ${h.anfitriao || '—'}</div>
+                <div class="hist-tipo">
+                  ${h.tipo} · ${h.nome}
+                  <span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:6px;${h.origem==='morador'?'background:rgba(31,111,235,.12);color:#4d9eff':'background:rgba(46,160,67,.12);color:var(--green-glow)'}">${h.origem==='morador'?'MORADOR':'VISITANTE'}</span>
+                </div>
+                <div class="hist-meta">${h.data || '—'} · ${h.meta}</div>
               </div>
             </div>`).join('')}
         </div>` : `<div class="empty-state" style="height:160px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <p>Nenhum registro de visita para esta unidade.</p>
+          <p>Nenhum registro de movimentação para esta unidade.</p>
         </div>`}
       `;
     },
@@ -9526,6 +9615,10 @@
       const totalVeic  = morDB.reduce((a, m) => a + (m.veiculos?.length || 0), 0);
       const taxaOcup   = unidTotal ? Math.round((unidOcup / unidTotal) * 100) : 0;
       const taxaAtivos = totalMor  ? Math.round((ativos   / totalMor)  * 100) : 0;
+      const morMovsHoje    = (typeof morMovDB !== 'undefined' ? morMovDB : []).filter(h => (h.data||'').startsWith(hoje));
+      const morEntradasHoje = morMovsHoje.filter(h => h.tipo === 'Entrada').length;
+      const morSaidasHoje   = morMovsHoje.filter(h => h.tipo === 'Saída').length;
+      const morDentroAgora  = morDB.filter(m => getStatusMorador(m.id).dentro).length;
 
       // SVGs inline helpers
       const ico = {
@@ -9561,6 +9654,15 @@
         })
         .slice(0, 10);
 
+      // movimentações de moradores recentes (join com cadastro atual)
+      const recentesMor = [...(typeof morMovDB !== 'undefined' ? morMovDB : [])]
+        .sort((a, b) => (b.id || 0) - (a.id || 0))
+        .slice(0, 10)
+        .map(h => {
+          const m = morDB.find(mm => mm.id === h.morador_id);
+          return { ...h, nome: m ? m.nome : 'Morador', bloco: m?.bloco, unidade: m?.unidade };
+        });
+
       document.getElementById('rel-count').textContent = `Atualizado em ${new Date().toLocaleTimeString('pt-BR')}`;
 
       document.getElementById('rel-content').innerHTML = `
@@ -9573,6 +9675,12 @@
           ${mkCard('amber',   'car',      totalVeic, 'Veículos Cadastrados',  'dot',   `média ${totalMor ? (totalVeic/totalMor).toFixed(1) : 0} por morador`)}
           ${mkCard('green',   'home',     unidOcup,  'Unidades Ocupadas',     'trend', `${taxaOcup}% de ocupação`)}
           ${mkCard('neutral', 'building', unidTotal, 'Total de Unidades',     'dot',   `${unidLivres} unidade${unidLivres !== 1 ? 's' : ''} livre${unidLivres !== 1 ? 's' : ''}`)}
+        </div>
+
+        <div class="rel-section-title">Movimentação de Moradores</div>
+        <div class="rel-summary-grid">
+          ${mkCard('green', 'eye',   morDentroAgora,   'No Condomínio Agora', 'dot',  morDentroAgora === 0 ? 'nenhum no momento' : 'moradores dentro')}
+          ${mkCard('blue',  'enter', morEntradasHoje,  'Entradas Hoje',       'trend', `${morSaidasHoje} saída${morSaidasHoje !== 1 ? 's' : ''} hoje`)}
         </div>
 
         <div class="rel-section-title">Visitantes</div>
@@ -9603,6 +9711,26 @@
               </tbody>
             </table>
           </div>` : '<div class="rel-empty" style="height:80px"><p>Nenhum visitante registrado ainda.</p></div>'}
+
+        <div class="rel-section-title">Últimas Movimentações de Moradores</div>
+        ${recentesMor.length ? `
+          <div class="rel-table-wrap">
+            <table class="rel-table">
+              <thead>
+                <tr><th>Nome</th><th>Bloco / Un.</th><th>Tipo</th><th>Data/Hora</th><th>Local</th></tr>
+              </thead>
+              <tbody>
+                ${recentesMor.map(h => `
+                  <tr>
+                    <td><strong>${h.nome}</strong></td>
+                    <td class="muted">Bl.${h.bloco || '?'} Un.${h.unidade || '?'}</td>
+                    <td>${this.badge(h.tipo === 'Entrada' ? 'dentro' : 'saiu')}</td>
+                    <td class="muted">${h.data || '—'}</td>
+                    <td class="muted">${h.local || 'Portaria Principal'}</td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>` : '<div class="rel-empty" style="height:80px"><p>Nenhuma movimentação de morador registrada ainda.</p></div>'}
       `;
     },
 
@@ -9640,8 +9768,22 @@
         ].join(',')).join('\n');
         nomeArq = 'moradores';
 
+      } else if (this.tab === 'resumo') {
+        const list = [...(typeof morMovDB !== 'undefined' ? morMovDB : [])]
+          .filter(h => this.inRange(h.data))
+          .sort((a, b) => (b.id || 0) - (a.id || 0))
+          .map(h => {
+            const m = morDB.find(mm => mm.id === h.morador_id);
+            return { ...h, nome: m ? m.nome : 'Morador', bloco: m?.bloco, unidade: m?.unidade };
+          });
+        csv = 'Nome,Bloco,Unidade,Tipo,Data/Hora,Local\n';
+        csv += list.map(h => [
+          esc(h.nome), esc(h.bloco), esc(h.unidade), esc(h.tipo), esc(h.data), esc(h.local || 'Portaria Principal')
+        ].join(',')).join('\n');
+        nomeArq = 'movimentacao_moradores';
+
       } else {
-        showToast('Exportação CSV disponível apenas nas abas Visitantes e Moradores.', 'ok');
+        showToast('Exportação CSV disponível apenas nas abas Visitantes, Moradores e Resumo.', 'ok');
         return;
       }
 
@@ -9722,6 +9864,13 @@
         const vHoje = visitDB.filter(v => v.entrada && v.entrada.startsWith(hjBr)).length;
         const veics = morDB.reduce((a, m) => a + (m.veiculos?.length || 0), 0);
         const unOcp = unidDB.filter(u => u.titular_id).length;
+        const movList = [...(typeof morMovDB !== 'undefined' ? morMovDB : [])]
+          .filter(h => this.inRange(h.data))
+          .sort((a, b) => (b.id || 0) - (a.id || 0))
+          .map(h => {
+            const m = morDB.find(mm => mm.id === h.morador_id);
+            return { ...h, nome: m ? m.nome : 'Morador', bloco: m?.bloco, unidade: m?.unidade };
+          });
         tableHTML = `
           <table style="max-width:480px">
             <tbody>
@@ -9734,7 +9883,24 @@
               <tr><td><b>Entradas hoje (${hjBr})</b></td><td>${vHoje}</td></tr>
               <tr><td><b>Total de registros de visita</b></td><td>${visitDB.length}</td></tr>
             </tbody>
-          </table>`;
+          </table>
+          <h3>Movimentação de Moradores</h3>
+          ${movList.length ? `
+          <table>
+            <thead><tr><th>#</th><th>Nome</th><th>Bl./Un.</th><th>Tipo</th><th>Data/Hora</th><th>Local</th></tr></thead>
+            <tbody>${movList.map((h, i) => `
+              <tr>
+                <td>${i + 1}</td>
+                <td><b>${h.nome}</b></td>
+                <td>Bl.${h.bloco || '?'} Un.${h.unidade || '?'}</td>
+                <td>${h.tipo}</td>
+                <td>${h.data || '—'}</td>
+                <td>${h.local || 'Portaria Principal'}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+          <p class="totais">Total: <b>${movList.length}</b> movimentação(ões)${de !== '—' || ate !== '—' ? ` | Período: ${de} a ${ate}` : ''}</p>`
+          : '<p class="totais">Nenhuma movimentação de morador registrada no período.</p>'}`;
       }
 
       const win = window.open('', '_blank');
