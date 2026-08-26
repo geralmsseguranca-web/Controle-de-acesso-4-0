@@ -8056,10 +8056,18 @@
               <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${found.nome}</div>
               <div style="font-size:10px;opacity:.7;margin-top:1px">${found.doc_tipo||''}: ${found.doc||'—'} · ${found.status==='dentro'?'🟢 No local':'⚫ '+(found.entrada||'Sem registro')}</div>
             </div>
+            ${found.status === 'dentro' ? `
+            <button class="btn btn-secondary" style="flex-shrink:0;font-size:11px;padding:5px 10px;border-radius:7px" onclick="buscaWiz.darBaixaAgora(${found.id})">
+              Dar baixa
+            </button>` : ''}
             <button class="btn" style="flex-shrink:0;font-size:11px;padding:5px 12px;background:var(--green-glow,#2ea043);color:#fff;border:none;border-radius:7px" onclick="buscaWiz.usarCadastro()">
               Usar →
             </button>
           </div>
+          ${found.status === 'dentro' ? `
+          <div style="margin-top:6px;font-size:10px;color:var(--text-muted);padding:0 2px">
+            Esta pessoa consta como <b>dentro do condomínio</b>. Dê baixa (registre a saída) antes de autorizar uma nova entrada, se for o caso.
+          </div>` : ''}
           <div style="margin-top:8px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 10px">
             <div style="font-size:10px;font-weight:700;color:var(--text-muted);margin-bottom:6px">
               📋 Último acesso registrado
@@ -8085,6 +8093,28 @@
             : 'Nenhum cadastro encontrado — prossiga para cadastrar como novo';
         }
       }
+    },
+
+    darBaixaAgora(id) {
+      if (typeof visitDB === 'undefined') return;
+      const v = visitDB.find(x => x.id === id);
+      if (!v) return;
+      const agora = new Date();
+      v.status = 'saiu';
+      v.saida = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+      if (typeof saveVisitDB === 'function') saveVisitDB();
+
+      const notif = document.createElement('div');
+      notif.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--surface2,#333);color:var(--text,#fff);border:1px solid var(--border);padding:12px 20px;border-radius:12px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3)';
+      notif.textContent = `Saída registrada: ${v.nome}`;
+      document.body.appendChild(notif);
+      setTimeout(() => notif.remove(), 3000);
+
+      if (typeof visitantes !== 'undefined' && document.getElementById('mod-visitantes')?.classList.contains('open')) visitantes.renderList();
+      if (typeof renderDashboard !== 'undefined') renderDashboard();
+
+      // Atualiza o card de busca para refletir o novo status (agora pode registrar nova entrada)
+      this.buscarDoc();
     },
 
     usarCadastro() {
@@ -8387,7 +8417,9 @@
           document.getElementById('wiz-motivo').value = v.motivo || '';
           document.getElementById('wiz-obs').value    = v.obs   || '';
           document.getElementById('wiz-veic-placa').value  = v.placa  || placa;
-          document.getElementById('wiz-veic-modelo').value = v.modelo || '';
+          document.getElementById('wiz-veic-marca').value  = v.veic_marca || '';
+          document.getElementById('wiz-veic-modelo').value = v.veic_modelo || v.modelo || '';
+          document.getElementById('wiz-veic-cor').value    = v.veic_cor || '';
           document.getElementById('wiz-veic-tipo').value = v.veiculo_tipo || 'Carro';
           document.getElementById('wiz-veic-tipo-carro')?.classList.toggle('active', (v.veiculo_tipo || 'Carro') === 'Carro');
           document.getElementById('wiz-veic-tipo-moto')?.classList.toggle('active', v.veiculo_tipo === 'Moto');
@@ -8498,6 +8530,7 @@
       const novoVisit = {
         id: novoId, nome, doc, doc_tipo, email, tel,
         placa, veiculo_tipo: veicTipo, modelo: (marca ? marca.replace(/\s*\(Moto\)/i,'') + ' ' : '') + modelo + (cor ? ' ' + cor : ''),
+        veic_marca: marca, veic_modelo: modelo, veic_cor: cor,
         empresa, cnpj, bloco, unidade, anfitriao: anfitr,
         motivo, tipo, status: 'dentro',
         entrada: dataBr + ' ' + horaStr, saida: '',
