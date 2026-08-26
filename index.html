@@ -8595,6 +8595,9 @@
       alert('Não foi possível salvar os dados (' + e.message + '). Se você abriu este arquivo direto da pasta Downloads, tente hospedar em um servidor (GitHub Pages/Netlify) ou abrir pelo navegador normalmente — o armazenamento local pode estar bloqueado nesse modo de abertura.');
     }
     atualizarSidebar();
+    // Sincroniza imediatamente outras telas que dependem de visitDB, mesmo sem esperar o round-trip do Firebase
+    if (typeof monitoramento !== 'undefined') monitoramento.atualizar();
+    if (typeof buscaWiz !== 'undefined' && document.getElementById('mod-busca')?.classList.contains('open')) buscaWiz.buscarDoc?.();
   }
 
   // ── Banco de Dados Recorrentes ─────────────────────────
@@ -12789,9 +12792,16 @@ ${tableHTML}
           break;
         case 'visit_db':
           visitDB = dados;
+          // Se o visitante atualmente aberto na ficha de detalhes mudou (ex: saída registrada em outra aba/dispositivo), atualiza a referência e o painel
+          if (typeof visitSelected !== 'undefined' && visitSelected) {
+            const atualizado = visitDB.find(v => v.id === visitSelected.id);
+            if (atualizado) { visitSelected = atualizado; visitantes.renderDados?.(); }
+          }
           if (typeof visitantes !== 'undefined' && document.getElementById('mod-visitantes')?.classList.contains('open'))
             visitantes.renderList?.();
           monitoramento.atualizar();
+          if (typeof buscaWiz !== 'undefined' && document.getElementById('mod-busca')?.classList.contains('open'))
+            buscaWiz.buscarDoc?.();
           break;
         case 'rec_db':
           recDB = dados;
